@@ -1,0 +1,32 @@
+{
+  "name": "marketplace_gw",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukmanfyrtio/marketplace.git"
+  },
+  "author": "Lukman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lukmanfyrtio/marketplace/issues"
+  },
+  "homepage": "https://github.com/lukmanfyrtio/marketplace#readme",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "crypto-js": "^4.1.1",
+    "express": "^4.17.2",
+    "moment": "^2.29.1",
+    "moment-timezone": "^0.5.34",
+    "utf8": "^3.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "keywords": [],
+  "description": ""
+}
