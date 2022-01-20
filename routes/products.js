@@ -31,11 +31,11 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response);
@@ -68,11 +68,11 @@ router.get('/product', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -108,11 +108,11 @@ router.post('/product/update_price', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -149,11 +149,11 @@ router.post('/product/update_stock', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -189,11 +189,11 @@ router.post('/product/update_state', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -223,11 +223,11 @@ router.get('/product/category', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -255,11 +255,11 @@ router.get('/product/etalase', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -292,11 +292,11 @@ router.get('/product/variant', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -319,13 +319,13 @@ router.get('/pickup-point', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -352,13 +352,13 @@ router.get('/get_brand', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -382,13 +382,13 @@ router.get('/logistic', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            console.log("hitShoppe");
+            res.send("still not avalable for tokopedia")
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -420,11 +420,11 @@ router.get('/creation-status', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -455,13 +455,13 @@ router.post('/request-pickup', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)

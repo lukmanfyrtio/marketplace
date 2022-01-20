@@ -47,11 +47,11 @@ router.post('/list', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
@@ -83,11 +83,11 @@ router.post('/get', async function (req, res) {
             response.message = "This service is not yet available for tokopedia marketplace"
             return;
         } else if (marketplace == "shopee") {
-            console.log("hitShoppe");
+            res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            console.log("hitBliBli");
+            res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
-            console.log("hitLazada");
+            res.send("still not avalable for lazada")
         }
     }
     res.status(response.code).send(response)
