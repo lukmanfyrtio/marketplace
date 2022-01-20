@@ -1,16 +1,15 @@
 const orderRoutes = require('./routes/order.js')
+const productRoutes = require('./routes/products.js')
+const settlementRoutes = require('./routes/settlement.js')
+const chatRoutes = require('./routes/chat.js')
 const express = require('express')
 const app = express();
-const apiTokped = require('./api_marketplace/api_tokped.js')
 
 const PORT = 80
 app.use(express.json());
 
-app.use('/order', orderRoutes);
+app.use('/', orderRoutes,productRoutes,settlementRoutes,chatRoutes);
 
-app.get('/token-tokped',function (){
-  apiTokped.getToken()
-});
 
 
 

@@ -12,13 +12,13 @@ let response = {
   }
 }
 
-router.get('/:orderId', async function (req, res) {
+router.get('/order/:orderId', async function (req, res) {
   const search = req.query;
   if (search.marketplace == "shoppe") { response = await apiShoppe.getSingleOrder(req.params.orderId); }
   if (search.marketplace == "tokopedia") { response = await apiTokped.getSingleOrder(req.params.orderId); }
   if (search.marketplace == "blibli") { response = await apiBlibli.getSingleOrder(10001, 25000092160, 25000109944, "YourCompany") }
   if (search.marketplace == "lazada") { response = await apiLazada.getSingleOrder(req.params.orderId) }
-  res.status(response.code).send(JSON.stringify(response));
+  // res.status(response.code).send(JSON.stringify(response));
 });
 
 router.get('/list', async function (req, res) {
