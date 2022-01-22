@@ -49,7 +49,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
   headers = {
     Authorization: `Bearer ${token ? token : "token"}`
   }
-  if (method.toUpperCase() == "post".toUpperCase()) { headers[`Content-Type`] = `application/json` }
+  if (method.toUpperCase() == "post".toUpperCase()||method.toUpperCase() == "patch".toUpperCase()) { headers[`Content-Type`] = `application/json` }
 
   let config = {
     method: method,
@@ -76,7 +76,11 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       if (e.response.status == 401) {
         responseData.message = "401 Authorization Required"
       } else {
-        responseData.message = e.response.data.header.reason !== undefined ? e.response.data.header.reason : ""
+        if(e.response.data.header!==undefined&&e.response.data.header.reason!==undefined){
+          responseData.message = e.response.data.header.reason ;
+        }else{
+          responseData.message=e.response.data
+        }
       }
       resolve(responseData);
     });
@@ -95,7 +99,7 @@ function getSingleOrder(order_id, invoice_num) {
   return hitApi("get", `/v2/fs/${apiId}/order`, params);
 }
 
-function getAllOrders(from_date, to_date, page, per_page, shop_id, warehouse_id, status) {
+function getAllOrders(from_date, to_date, page=1, per_page, shop_id, warehouse_id, status) {
   let params = {};
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
@@ -109,13 +113,13 @@ function getAllOrders(from_date, to_date, page, per_page, shop_id, warehouse_id,
   return hitApi("get", `/v2/fs/${apiId}/order`, params);
 }
 //https://developer.tokopedia.com/openapi/guide/#/order/getallorder
-function getOrders(from_date, to_date, page, per_page, shop_id, warehouse_id, status) {
+function getOrders(from_date, to_date, page=1, per_page=50, shop_id, warehouse_id, status) {
   let params = {};
   //required
   params.fs_id = apiId
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
-  if (page) params.page = page
+  params.page = page
   if (per_page) params.per_page = per_page
 
   //optional
@@ -209,7 +213,7 @@ function getCategories(keyword) {
 }
 
 
-function getProduct(getBy, product_id, product_url, shop_id, page = 0, per_page = 50, sort = 1, sku) {
+function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku) {
   let params = {};
   //optional
   if (getBy == "pid") {
@@ -389,7 +393,7 @@ function createProductV3(shop_id, name, category_id, price_currency, price, stat
 
   if (is_must_insurance) productsObj.is_must_insurance = is_must_insurance
   if (is_free_return) productsObj.is_free_return = is_free_return
-  if (sku) productsObj.sku = sku
+  if (sku) productsObj.sku = sku.toString()
   if (stock) productsObj.stock = stock
 
 
@@ -411,6 +415,56 @@ function createProductV3(shop_id, name, category_id, price_currency, price, stat
 }
 
 
+function updateProductV3(shop_id, name, id,category_id, price_currency, price, status, min_order, weight, weight_unit, condition
+  , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, stock, wholesale, preorder
+  , pictures, videos, variant) {
+  let body = {};
+  let params = {};
+  let productsObj = {};
+  //required
+  if (name) productsObj.id = id
+  if (name) productsObj.name = name
+  if (sku) productsObj.sku = sku.toString()
+  if (category_id) productsObj.category_id = category_id
+  if (price_currency) productsObj.price_currency = price_currency
+  if (price) productsObj.price = price
+  if (status) productsObj.status = status
+  if (min_order) productsObj.min_order = min_order
+  if (weight) productsObj.weight = weight
+  if (weight_unit) productsObj.weight_unit = weight_unit
+  if (condition) productsObj.condition = condition
+
+  //optional
+  if (dimension) productsObj.dimension = dimension
+  if (custom_product_logistics) productsObj.custom_product_logistics = custom_product_logistics
+  if (annotations) productsObj.annotations = annotations
+
+  if (etalase) productsObj.etalase = etalase
+  if (description) productsObj.description = description
+
+  if (is_must_insurance) productsObj.is_must_insurance = is_must_insurance
+  if (is_free_return) productsObj.is_free_return = is_free_return
+  if (stock) productsObj.stock = stock
+
+
+  if (wholesale) productsObj.wholesale = wholesale
+  if (preorder) productsObj.preorder = preorder
+  if (pictures) productsObj.pictures = pictures
+  if (videos) productsObj.videos = videos
+  if (variant) productsObj.variant = variant
+
+
+  let products = [productsObj];
+
+  body.products = products
+
+  if (shop_id) params.shop_id = shop_id
+  let path = `/v3/products/fs/${apiId}/edit`;
+
+  return hitApi('patch', path, params, body);
+}
+
+
 function updateProductState(state, shop_id, product_id) {
   let body = {};
   let params = {};
@@ -419,6 +473,19 @@ function updateProductState(state, shop_id, product_id) {
   if (product_id) body.product_id = [Number(product_id)]
   if (shop_id) params.shop_id = shop_id
   if (state) path = `/v1/products/fs/${apiId}/active`;
+
+
+  return hitApi('post', path, params, body);
+}
+
+
+function deleteProduct(shop_id, product_id) {
+  let body = {};
+  let params = {};
+  let path=`/v3/products/fs/${apiId}/delete`;
+  //required
+  if (product_id) body.product_id = [Number(product_id)]
+  if (shop_id) params.shop_id = shop_id
 
 
   return hitApi('post', path, params, body);
@@ -492,4 +559,4 @@ function getStatusProduct(shop_id, upload_id) {
 
 
 
-module.exports = { getSingleOrder, getAllOrders, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply};
+module.exports = { getSingleOrder, getAllOrders, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};
