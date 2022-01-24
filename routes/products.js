@@ -1,4 +1,7 @@
+const apiShoppe = require('../api_marketplace/api_shoppe.js')
 const apiTokped = require('../api_marketplace/api_tokped.js')
+const apiBlibli = require('../api_marketplace/api_blibli.js')
+const apiLazada = require('../api_marketplace/api_lazada.js')
 
 const express = require('express')
 const router = express.Router();
@@ -214,14 +217,14 @@ router.post('/product/create', async function (req, res) {
     } else if (!Array.isArray(images)) {
         response.code = 400;
         response.message = `Field images in request body shall be array object example => images:[{url: URLString}]`;
-    }else if (images === undefined || images.length == 0) {
+    } else if (images === undefined || images.length == 0) {
         response.code = 400;
         response.message = `Field images in request body should not be empty`;
-    }else if (minimum_order === null || minimum_order === undefined) {
+    } else if (minimum_order === null || minimum_order === undefined) {
         response.code = 400
         response.message = "Field minimum_order in request body required"
     }
-     else if (!Number.isInteger(minimum_order)) {
+    else if (!Number.isInteger(minimum_order)) {
         response.code = 400
         response.message = "Field minimum_order is should be integer"
     } else if (weight === null || weight === undefined) {
@@ -256,7 +259,7 @@ router.post('/product/create', async function (req, res) {
                 }
                 arrayImage.push(img);
             });
-        
+
             if (etalase_id === null || etalase_id === undefined) {
                 response.message = "Parameter etalase_id is required"
             }
@@ -436,7 +439,63 @@ router.post('/product/create', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+
+            let original_price = Number(price)
+            let description = description
+            let item_name = product_name
+            let normal_stock = Number(stock)
+            let logistic_info = logistics
+            let category_id = Number(category_id)
+            let image = imageReq
+            let condition = kondisiShoppe
+            let item_status = status
+            let wholesales ;
+
+
+            if (logistics) {
+                response.message = "Field logistics in body is required,";
+            } else if (item_dangerous) {
+                if (Number.isInteger(item_dangerous)) {
+                    //set item_dangerous
+                    body.item_dangerous = item_dangerous
+                } else {
+                    response.message = "Field item_dangerous shall be integer";
+                }
+            } else if (wholesale_qty || wholesale_price) {
+                if (wholesale_qty) {
+                    if (wholesale_price) {
+                        if (Number.isInteger(wholesale_qty)) {
+                            if (Number.isInteger(wholesale_price)) {
+                                wholesales = [{
+                                    "min_count": Number(wholesale_qty),
+                                    "max_count": Number(wholesale_qty),
+                                    "unit_price": Number(wholesale_price),
+                                }];
+                            } else {
+                                esponse.message = "Field wholesale_price shall be integer,";
+                            }
+                        } else {
+                            esponse.message = "Field wholesale_qty shall be integer,";
+                        }
+                    } else {
+                        response.message = "Include field wholesale_price if wholesale_qty is defined,";
+                    }
+                } else {
+                    response.message = "Include field wholesale_qty if wholesale_price is defined,";
+                }
+            } else {
+
+                let array_images = [];
+                images.forEach(element => {
+                    array_images.push(element.url);
+                });
+                let imageReq = {
+                    image_id_list: array_images
+                }
+
+                kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
+                statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
+            }
         } else if (marketplace == "blibli") {
             res.send("still not avalable for blibli")
         } else if (marketplace == "lazada") {
@@ -468,7 +527,7 @@ router.post('/product/update', async function (req, res) {
     const price = body.price
     const stock = body.stock
     const images = body.images
-    
+
 
     const minimum_order = body.minimum_order
     const weight = body.weight
@@ -653,14 +712,14 @@ router.post('/product/update', async function (req, res) {
     } else if (!Array.isArray(images)) {
         response.code = 400;
         response.message = `Field images in request body shall be array object example => images:[{url: URLString}]`;
-    }else if (images === undefined || images.length == 0) {
+    } else if (images === undefined || images.length == 0) {
         response.code = 400;
         response.message = `Field images in request body should not be empty`;
-    }else if (minimum_order === null || minimum_order === undefined) {
+    } else if (minimum_order === null || minimum_order === undefined) {
         response.code = 400
         response.message = "Field minimum_order in request body required"
     }
-     else if (!Number.isInteger(minimum_order)) {
+    else if (!Number.isInteger(minimum_order)) {
         response.code = 400
         response.message = "Field minimum_order is should be integer"
     } else if (weight === null || weight === undefined) {
@@ -695,7 +754,7 @@ router.post('/product/update', async function (req, res) {
                 }
                 arrayImage.push(img);
             });
-        
+
             if (etalase_id === null || etalase_id === undefined) {
                 response.message = "Parameter etalase_id is required"
             }
@@ -858,17 +917,17 @@ router.post('/product/update', async function (req, res) {
                 });
                 if (selection) {
                     selection = selection
-                    variantTokped.selection=selection
+                    variantTokped.selection = selection
                 } else {
                     response.message = 'Field selection for variant is required ';
                 }
-                if(variantTokped.length!==0){
-                    variant.products=array_variant
+                if (variantTokped.length !== 0) {
+                    variant.products = array_variant
                 }
 
             }
 
-            let hitAPI = await apiTokped.updateProductV3(shop_id, product_name,product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
+            let hitAPI = await apiTokped.updateProductV3(shop_id, product_name, product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
                 , arrayImage, videos, variantTokped)
             res.status(hitAPI.code).send(hitAPI);
@@ -907,11 +966,17 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit);
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getProducts(shop_id, "username");
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.getProducts(page, limit);
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response);
@@ -944,11 +1009,17 @@ router.get('/product', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.getSingleProduct(shop_id, [Number(productId)])
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getSingleProduct(shop_id, productId)
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.getSingleProduct(productId);
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -986,11 +1057,17 @@ router.post('/product/update_price', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.updatePrice(shop_id, product_id, new_price);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.updateProductPrice(product_id, "username", shop_id, new_price)
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.updateProductPrice(product_id, new_price)
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1027,11 +1104,17 @@ router.post('/product/update_stock', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.updateStock(shop_id, product_id, new_stock);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.updateProductStock(product_id, "username", shop_id, new_stock);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.updateProductStock(product_id, new_stock);
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1269,7 +1352,9 @@ router.get('/get_brand', async function (req, res) {
         } else if (marketplace == "shopee") {
             res.send("still not avalable for shoppe")
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getBrands(shop_id, "username", keyword, page, limit);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
             res.send("still not avalable for lazada")
         }

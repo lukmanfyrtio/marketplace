@@ -3,7 +3,7 @@ const axios = require('axios')
 let client_id = '7db04fe68ef243d492f45d9754dc4efd';
 let client_secret = '4f4f08c861284c55acdeda6f33327d15';
 let url = 'https://fs.tokopedia.net';
-let apiId = 15991
+let fs_id = 15991
 
 
 
@@ -96,27 +96,15 @@ function getSingleOrder(order_id, invoice_num) {
   //optional
   if (invoice_num) params.invoice_num = invoice_num
 
-  return hitApi("get", `/v2/fs/${apiId}/order`, params);
+  return hitApi("get", `/v2/fs/${fs_id}/order`, params);
 }
 
-function getAllOrders(from_date, to_date, page=1, per_page, shop_id, warehouse_id, status) {
-  let params = {};
-  if (from_date) params.from_date = from_date
-  if (to_date) params.to_date = to_date
 
-  if (page) params.page = page
-  if (per_page) params.per_page = per_page
-  if (shop_id) params.shop_id = shop_id
-  if (warehouse_id) params.warehouse_id = warehouse_id
-  if (status) params.status = status
-
-  return hitApi("get", `/v2/fs/${apiId}/order`, params);
-}
 //https://developer.tokopedia.com/openapi/guide/#/order/getallorder
 function getOrders(from_date, to_date, page=1, per_page=50, shop_id, warehouse_id, status) {
   let params = {};
   //required
-  params.fs_id = apiId
+  params.fs_id = fs_id
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
   params.page = page
@@ -137,7 +125,7 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
   let body = {};
   //required
   if (order_id) params.order_id = order_id
-  if (fs_id) params.fs_id = apiId
+  params.fs_id = fs_id
   if (reason_code) body.reason_code = reason_code
   if (reason) body.reason = reason
 
@@ -147,7 +135,7 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
   if (shop_close_note) body.shop_close_note = shop_close_note
   if (empty_products) body.empty_products = empty_products
 
-  return hitApi('post', `/v1/order/${order_id}/fs/${apiId}/nack`, params);
+  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/nack`, params);
 }
 
 
@@ -155,7 +143,9 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
 //order id required
 //fs_id  required
 function orderAccept(order_id) {
-  return hitApi('post', `/v1/order/${order_id}/fs/${apiId}/ack`);
+  if (order_id) params.order_id = order_id
+  params.fs_id = fs_id
+  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/ack`);
 }
 
 //https://developer.tokopedia.com/openapi/guide/#/order/requestpickup
@@ -166,7 +156,7 @@ function requestPickup(order_id, shop_id) {
   if (order_id) body.order_id = order_id
   if (shop_id) body.shop_id = shop_id
 
-  return hitApi('post', `/inventory/v1/fs/${apiId}/pick-up`, {}, body);
+  return hitApi('post', `/inventory/v1/fs/${fs_id}/pick-up`, {}, body);
 }
 
 
@@ -183,7 +173,7 @@ function requestCOBCOD(order_id, shop_id, warehouse_id, per_page, first_order_id
   if (first_order_id) params.first_order_id = first_order_id
   if (next_order_id) params.next_order_id = next_order_id
 
-  return hitApi('post', `/v1/fs/${apiId}/fulfillment_order`, params, {});
+  return hitApi('post', `/v1/fs/${fs_id}/fulfillment_order`, params, {});
 }
 
 //https://developer.tokopedia.com/openapi/guide/#/order/updateorderstatus
@@ -194,7 +184,7 @@ function updateOrderStatus(order_id, order_status, shipping_ref_num) {
   if (order_status) body.order_status = order_status
   if (shipping_ref_num) body.shipping_ref_num = shipping_ref_num
 
-  return hitApi('post', `/v1/order/${order_id}/fs/${apiId}/status`, {}, body);
+  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/status`, {}, body);
 
 }
 
@@ -207,7 +197,7 @@ function getCategories(keyword) {
   //optional
   if (keyword) params.keyword = keyword
 
-  let path = `/inventory/v1/fs/${apiId}/product/category`
+  let path = `/inventory/v1/fs/${fs_id}/product/category`
 
   return hitApi('get', path, params, {});
 }
@@ -227,7 +217,7 @@ function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page 
     if (per_page !== null) params.per_page = per_page
     if (sort) params.sort = sort
   }
-  let path = `/inventory/v1/fs/${apiId}/product/info`
+  let path = `/inventory/v1/fs/${fs_id}/product/info`
 
   return hitApi('get', path, params, {});
 }
@@ -242,19 +232,19 @@ function getProductVariant(getBy, product_id, cat_id) {
   } else if (getBy == "cat_id") {
     if (cat_id) params.cat_id = cat_id
   }
-  let path = `/inventory/v1/fs/${apiId}/category/get_variant?cat_id=:cat_id`;
+  let path = `/inventory/v1/fs/${fs_id}/category/get_variant?cat_id=:cat_id`;
 
   return hitApi('get', path, params, {});
 }
 
 function getProductVariant(getBy, product_id, cat_id) {
-  let path = `/inventory/v1/fs/${apiId}/category/get_variant`;
+  let path = `/inventory/v1/fs/${fs_id}/category/get_variant`;
   let params = {};
   //optional
   if (getBy == "product_id") {
     if (product_id) {
       params.product_id = product_id
-      path = `/inventory/v1/fs/${apiId}/product/variant/${product_id}`
+      path = `/inventory/v1/fs/${fs_id}/product/variant/${product_id}`
     }
   } else if (getBy == "cat_id") {
     if (cat_id) params.cat_id = cat_id
@@ -284,7 +274,7 @@ function updateProductPrice(shop_id, new_price, product_id) {
   console.log(body);
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${apiId}/price/update`;
+  let path = `/inventory/v1/fs/${fs_id}/price/update`;
 
   return hitApi('post', path, params, body);
 }
@@ -317,7 +307,7 @@ function updateProductStock(shop_id, new_stock, product_id) {
   console.log(body);
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${apiId}/stock/update`;
+  let path = `/inventory/v1/fs/${fs_id}/stock/update`;
 
   return hitApi('post', path, params, body);
 }
@@ -330,7 +320,7 @@ function getShopInfo(shop_id, page = 0, per_page = 50) {
   if (page) params.page = page
   if (per_page) params.per_page = per_page
 
-  let path = `/v1/shop/fs/${apiId}/shop-info`;
+  let path = `/v1/shop/fs/${fs_id}/shop-info`;
 
   return hitApi('get', path, params, {});
 }
@@ -349,7 +339,7 @@ function getAllShowCase(shop_id, page = 0, per_page = 50, hide_zero, display) {
   if (hide_zero) params.hide_zero = hide_zero
   if (display) params.display = display
 
-  let path = `/v1/showcase/fs/${apiId}/get`;
+  let path = `/v1/showcase/fs/${fs_id}/get`;
 
   return hitApi('get', path, params, {});
 }
@@ -360,7 +350,7 @@ function getAllEtalase(shop_id) {
   //required
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${apiId}/product/etalase`;
+  let path = `/inventory/v1/fs/${fs_id}/product/etalase`;
 
   return hitApi('get', path, params, {});
 }
@@ -409,7 +399,7 @@ function createProductV3(shop_id, name, category_id, price_currency, price, stat
   body.products = products
 
   if (shop_id) params.shop_id = shop_id
-  let path = `/v3/products/fs/${apiId}/create`;
+  let path = `/v3/products/fs/${fs_id}/create`;
 
   return hitApi('post', path, params, body);
 }
@@ -459,7 +449,7 @@ function updateProductV3(shop_id, name, id,category_id, price_currency, price, s
   body.products = products
 
   if (shop_id) params.shop_id = shop_id
-  let path = `/v3/products/fs/${apiId}/edit`;
+  let path = `/v3/products/fs/${fs_id}/edit`;
 
   return hitApi('patch', path, params, body);
 }
@@ -468,11 +458,11 @@ function updateProductV3(shop_id, name, id,category_id, price_currency, price, s
 function updateProductState(state, shop_id, product_id) {
   let body = {};
   let params = {};
-  let path = `/v1/products/fs/${apiId}/inactive`;
+  let path = `/v1/products/fs/${fs_id}/inactive`;
   //required
   if (product_id) body.product_id = [Number(product_id)]
   if (shop_id) params.shop_id = shop_id
-  if (state) path = `/v1/products/fs/${apiId}/active`;
+  if (state) path = `/v1/products/fs/${fs_id}/active`;
 
 
   return hitApi('post', path, params, body);
@@ -482,7 +472,7 @@ function updateProductState(state, shop_id, product_id) {
 function deleteProduct(shop_id, product_id) {
   let body = {};
   let params = {};
-  let path=`/v3/products/fs/${apiId}/delete`;
+  let path=`/v3/products/fs/${fs_id}/delete`;
   //required
   if (product_id) body.product_id = [Number(product_id)]
   if (shop_id) params.shop_id = shop_id
@@ -501,7 +491,7 @@ function getAllSettlements(shop_id, page = 0, per_page = 50, from_date, to_date)
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
 
-  let path = `/v1/fs/${apiId}/${shop_id}/saldo-history`;
+  let path = `/v1/fs/${fs_id}/${shop_id}/saldo-history`;
 
   return hitApi('get', path, params, {});
 }
@@ -516,7 +506,7 @@ function getChat(shop_id, page = 0, per_page = 50, filter = "all") {
   if (filter) params.filter = filter
 
 
-  let path = `/v1/chat/fs/${apiId}/messages`;
+  let path = `/v1/chat/fs/${fs_id}/messages`;
 
   return hitApi('get', path, params, {});
 }
@@ -529,7 +519,7 @@ function getReply(shop_id, page = 0, per_page = 50, msg_id) {
   if (per_page) params.per_page = per_page
 
 
-  let path = `/v1/chat/fs/${apiId}/messages/${msg_id}/replies`;
+  let path = `/v1/chat/fs/${fs_id}/messages/${msg_id}/replies`;
 
   return hitApi('get', path, params, {});
 }
@@ -541,7 +531,7 @@ function postReply(shop_id, message, msg_id) {
   if (message) body.message = message
 
 
-  let path = `/v1/chat/fs/${apiId}/messages/${msg_id}/reply`;
+  let path = `/v1/chat/fs/${fs_id}/messages/${msg_id}/reply`;
 
   return hitApi('post', path, {}, body);
 }
@@ -551,7 +541,7 @@ function getStatusProduct(shop_id, upload_id) {
   let params = {};
   //required
   if (shop_id) params.shop_id = Number(shop_id)
-  let path = `/v2/products/fs/${apiId}/status/${upload_id}`;
+  let path = `/v2/products/fs/${fs_id}/status/${upload_id}`;
 
   return hitApi('get', path, params, {});
 }
@@ -559,4 +549,6 @@ function getStatusProduct(shop_id, upload_id) {
 
 
 
-module.exports = { getSingleOrder, getAllOrders, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};
+
+
+module.exports = {getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};

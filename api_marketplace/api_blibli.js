@@ -5,6 +5,8 @@ let apiClientId = "apiClientId"
 let apiClientSecret = "apiClientId"
 let apiKeySeller = "apiKeySeller"
 let uri = "https://api.blibli.com/v2";
+let store_id = 10001
+let channel_id = 'mycompany'
 
 var moment = require('moment-timezone')
 
@@ -16,7 +18,7 @@ function generateCommonHeaders(reqMethod, body = "", reqContentType = "", urlReq
     let milliseconds = new Date(date.toDate()).getTime();
 
 
-    let reqBody = body !== "" ? hashmd5(body) : "";
+    let reqBody = body !== "" ? hashmd5(JSON.stringify(body)) : "";
     urlReq = uri + urlReq;
     let meta = urlReq.split("/proxy");
     let metas = meta[1]
@@ -57,44 +59,289 @@ function hashmd5(string) {
 }
 
 
-function hitApi(method = "", path = "", query = {}, body = {}, headers = {}) {
+async function hitApi(method = "", path = "", query = {}, body = {}, headers = {}) {
+    let responseData = {};
+    //common param
+    query.requestId = await getUUID()
+    query.storeId = store_id
+    query.channelId = channel_id
+
+    responseData.marketplace = "blibli"
+    responseData.timestamp = new Date().getTime();
+    headers = generateCommonHeaders(method, Object.keys(body).length !== 0 ? body : "", method.toUpperCase() == "get" ? "" : 'application/json', path);
     return new Promise(function (resolve, reject) {
         axios({
             method: method,
             url: uri + path,
             params: query,
             headers: headers,
+            data: body,
             auth: {
                 username: apiClientId,
                 password: apiClientSecret
             }
 
         }).then(function (response) {
+            console.log(response);
+            if (response.data.success) {
+                responseData.code = response.status;
+                responseData.message = 'Your request has been processed successfully';
+            } else {
+                responseData.code = response.status;
+                responseData.message = response.data.errorMessage;
+            }
             resolve(response);
 
         }).catch((e) => {
-            let response = {
-                code: e.response.status,
-                message: e.response.data.errorMessage
-            }
-            resolve(response);
+            console.log(e.response);
+            responseData.code = e.response.status;
+            responseData.message = e.response.data.errorMessage;
+            resolve(responseData);
         });
     });
 }
 
 
-async function getSingleOrder(storeId, orderNo, orderItemNo, channelId) {
+function getSingleOrder(orderNo, orderItemNo) {
     let path = "/proxy/mta/api/businesspartner/v1/order/orderDetail";
-    let headers = generateCommonHeaders("get", "", "", path);
-    let body = {};
     let param = {};
-    param.requestId = await getUUID()
-    if (storeId) param.storeId = storeId
     if (orderNo) param.orderNo = orderNo
     if (orderItemNo) param.orderItemNo = orderItemNo
-    if (channelId) param.channelId = channelId
 
-    return hitApi(method = "get", path = path, query = param, body = body, headers = headers)
+    return hitApi(method = "get", path, param, {})
+}
+
+function getOrders(shop_id, username, startDate, endDate, page = 0, limit = 50) {
+    let path = "/proxy/seller/v1/orders/packages/filter";
+    let param = {};
+    if (shop_id) param.storeCode = shop_id
+    if (username) param.username = username
+
+    let body = {
+        "filter": {
+            "statusFPDateRange": {
+                "end": endDate,
+                "start": startDate
+            }
+        },
+        "sorting": {
+            "by": "CREATED_DATE",
+            "direction": "DESC"
+        },
+        "paging": {
+            "page": page,
+            "size": limit
+        }
+    }
+    return hitApi(method = "post", path, param, body)
+}
+
+function getProducts(businessPartnerCode, username) {
+    let path = "/proxy/mta/api/businesspartner/v2/product/getProductList";
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (username) param.username = username
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getSingleProduct(businessPartnerCode, gdnSku) {
+
+    let path = "/proxy/mta/api/businesspartner/v1/product/detailProduct";
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (gdnSku) param.gdnSku = gdnSku
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getBrands(businessPartnerCode, username, brandName, page = 0, size = 50) {
+    let path = "/proxy/mta/api/businesspartner/v2/product/getBrands";
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (username) param.username = username
+    if (brandName) param.brandName = brandName
+    param.page = page
+    if (size) param.size = size
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function updateProductPrice(itemId, username, storeCode, priceReg, priceSale = null) {
+    let path = `/proxy/seller/v1/products/${itemId}`;
+    let param = {};
+    if (username) param.username = username
+    if (storeCode) param.storeCode = storeCode
+    if (itemId) param[blibli - sku] = itemId
+    let body = {
+        price: {
+            regular: Number(priceReg),
+            sale: priceSale
+        }
+    }
+
+    return hitApi(method = "put", path, param, body)
+}
+
+function updateProductStock(itemId, username, storeCode, stock) {
+    let path = `/proxy/seller/v1/products/${itemId}/stock`;
+    let param = {};
+    if (username) param.username = username
+    if (storeCode) param.storeCode = storeCode
+    if (itemId) param[`blibli-sku`] = itemId
+    let body = {
+        "availableStock": stock
+    }
+
+    return hitApi(method = "put", path, param, body)
+}
+
+function getChat(businessPartnerCode, username, startDate, endDate, page = 0, size = 50) {
+    let path = "/proxy/mta/api/businesspartner/v1/product/discussion/questions";
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (username) param.username = username
+    if (startDate) param.startDate = startDate
+    if (endDate) param.endDate = endDate
+    param.page = page
+    param.sortedBy = 'createdDate'
+    param.sortDirection = "DESC"
+    if (size) param.size = size
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getReply(questionCode, businessPartnerCode, username, page = 0, size = 50) {
+    let path = `/proxy/mta/api/businesspartner/v1/product/discussion/answers/${questionCode}`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (username) param.username = username
+    if (questionCode) param.questionCode = questionCode
+    param.page = page
+    param.sortedBy = 'createdDate'
+    param.sortDirection = "DESC"
+    if (size) param.size = size
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function postReply(questionCode, businessPartnerCode, username, answer) {
+    let path = `/proxy/mta/api/businesspartner/v1/product/discussion/answers/${questionCode}`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (username) param.username = username
+    if (questionCode) param.questionCode = questionCode
+    let body = {
+        "answer": answer
+    }
+
+    return hitApi(method = "post", path, param, body)
+}
+
+
+function getAllSettlements(storeCode, username, startDate, endDate, page = 0, size = 50) {
+    let path = "/proxy/seller/v1/settlements/filter";
+    let param = {};
+    if (storeCode) param.storeCode = storeCode
+    if (username) param.username = username
+    param.page = page
+    if (size) param.size = size
+
+    let body = {
+        "filter": {
+            "periodEndDate": startDate,
+            "periodStartDate": endDate,
+        },
+        "paging": {
+            "page": page,
+            "size": size
+        }
+    }
+
+    return hitApi(method = "post", path, param, body)
+}
+
+function getSingleSettlement(settlementId, storeCode, username) {
+    let path = `/proxy/seller/v1/settlements/${settlementId}`;
+    let param = {};
+    if (storeCode) param.storeCode = storeCode
+    if (username) param.username = username
+    if (settlementId) param.settlementId = settlementId
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function createProductV3(storeCode, username, attributes, brandCode, categoryCode, description, dimension, imageMap, logistics, name, newBrand, pickupPointCode
+    , uniqueSellingPoint,preOrder, productItems, productType, uniqueSellingPoint, videoUrl) {
+    let path = `/proxy/seller/v1/products/async`;
+    let param = {};
+    if (storeCode) param.storeCode = storeCode;
+    if (username) param.username = username;
+
+    let bodyObj = {};
+
+    if (attributes) bodyObj.attributes = attributes;
+    if (brandCode) bodyObj.brandCode = brandCode;
+    if (categoryCode) bodyObj.categoryCode = categoryCode;
+    if (description) bodyObj.description = description;
+    if (dimension) bodyObj.dimension = dimension;
+    if (imageMap) bodyObj.imageMap = imageMap;
+    if (logistics) bodyObj.logistics = logistics;
+    if (name) bodyObj.name = name;
+    if (newBrand) bodyObj.newBrand = newBrand;
+    if (pickupPointCode) bodyObj.pickupPointCode = pickupPointCode;
+    if (preOrder) bodyObj.preOrder = preOrder;
+
+    if (productItems) bodyObj.productItems = productItems;
+    if (productType) bodyObj.productType = productType;
+    if (uniqueSellingPoint) bodyObj.uniqueSellingPoint = uniqueSellingPoint;
+    if (videoUrl) bodyObj.videoUrl = videoUrl;
+
+    let body = {
+        "product": [
+            bodyObj
+        ]
+    }
+    return hitApi(method = "post", path, param, body)
+}
+
+function updateProduct(merchantCode, attributes, description, items, productName, productSku, productStory, productType, url) {
+    let path = `/proxy/mta/api/businesspartner/v1/product/updateDetailProduct`;
+    let param = {};
+    let bodyObj = {};
+
+    if (attributes) bodyObj.attributes = attributes;
+    if (description) bodyObj.description = description;
+    if (items) bodyObj.items = items;
+
+    
+    if (productName) bodyObj.productName = productName;
+    if (productSku) bodyObj.productSku = productSku;
+    if (productStory) bodyObj.productStory = productStory;
+    if (productType) bodyObj.productType = productType;
+    if (url) bodyObj.url = url;
+
+
+    let body = {
+        "merchantCode": merchantCode,
+        "productDetailRequests": [bodyObj
+        ]
+    }
+
+
+    return hitApi(method = "post", path, param, body)
+}
+
+
+function acceptOrder(orderId, businessPartnerCode) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/createPackage`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    let body = {
+        "orderItemIds": [`${orderId}`]
+    }
+
+    return hitApi(method = "post", path, param, body)
 }
 
 function getUUID() {
@@ -113,6 +360,6 @@ function getUUID() {
 }
 
 
-module.exports = { getSingleOrder, getUUID };
+module.exports = { getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getChat, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder };
 
 

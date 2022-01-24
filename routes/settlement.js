@@ -1,4 +1,7 @@
+const apiShoppe = require('../api_marketplace/api_shoppe.js')
 const apiTokped = require('../api_marketplace/api_tokped.js')
+const apiBlibli = require('../api_marketplace/api_blibli.js')
+const apiLazada = require('../api_marketplace/api_lazada.js')
 
 const express = require('express')
 const router = express.Router();
@@ -7,8 +10,13 @@ let response = {
     code: 404,
     message: "Something Wrong"
 }
+
+function unixTms(date){
+    return Math.floor(new Date(date).getTime()/1000.0)
+   }
+
 //Get All Settlement
-router.post('/list', async function (req, res) {
+router.get('/settlements', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
@@ -18,8 +26,9 @@ router.post('/list', async function (req, res) {
 
     const page = search.page;
     const limit = search.limit;
-
-    var regex = /^[0-9]{4}[\-][0-9]{2}[\-][0-9]{2}$/g;
+    var regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+    console.log(!regex.test(end_time));
+    console.log(!regex.test(start_time));
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
@@ -48,17 +57,22 @@ router.post('/list', async function (req, res) {
             return;
         } else if (marketplace == "shopee") {
             res.send("still not avalable for shoppe")
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getAllSettlements(shop_id, "username",unixTms(start_time),unixTms(end_time),page,limit)
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.getAllSettlements(page, limit, start_time, end_time);
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
 });
 
 //Get Single Settlement
-router.post('/get', async function (req, res) {
+router.get('/settlement', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
@@ -84,10 +98,14 @@ router.post('/get', async function (req, res) {
             return;
         } else if (marketplace == "shopee") {
             res.send("still not avalable for shoppe")
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getSingleSettlement(orderid,shop_id, "username")
+            res.send(hitAPI);
+            return; 
         } else if (marketplace == "lazada") {
             res.send("still not avalable for lazada")
+            return;
         }
     }
     res.status(response.code).send(response)

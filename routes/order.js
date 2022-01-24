@@ -60,11 +60,17 @@ router.get('/orders', async function (req, res) {
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "shopee") {
-      res.send("still not avalable for shoppe")
+      let hitAPI = await apiShoppe.getOrders(shop_id,unixTms(start_time),unixTms(end_time), page)
+      res.status(hitAPI.code).send(hitAPI);
+      return;
     } else if (marketplace == "blibli") {
-      res.send("still not avalable for blibli")
+      let hitAPI = await apiBlibli.getOrders(shop_id, "username",unixTms(start_time),unixTms(end_time),page,limit);
+      res.status(hitAPI.code).send(hitAPI);
+      return;
     } else if (marketplace == "lazada") {
-      res.send("still not avalable for lazada")
+      let hitAPI = await apiLazada.getOrders(offset=0, limit=50, start_time, end_time)
+      res.status(hitAPI.code).send(hitAPI);
+      return;
     }
   }
   res.status(response.code).send(response)
@@ -98,11 +104,19 @@ router.get('/order', async function (req, res) {
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "shopee") {
-      res.send("still not avalable for shoppe")
+      let hitAPI = await apiShoppe.getSingleOrder(shop_id, [orderid])
+      res.status(hitAPI.code).send(hitAPI);
+      return;
     } else if (marketplace == "blibli") {
-      res.send("still not avalable for blibli")
+      let pid=orderid.split("-");
+      let oin=pid[1]?pid[1]:0;
+      let hitAPI = await apiBlibli.getSingleOrder(pid[0], oin);
+      res.send(hitAPI);
+      return;
     } else if (marketplace == "lazada") {
-      res.send("still not avalable for lazada")
+      let hitAPI = await apiLazada.getSingleOrder(orderid)
+      res.status(hitAPI.code).send(hitAPI);
+      return;
     }
   }
   res.status(response.code).send(response)

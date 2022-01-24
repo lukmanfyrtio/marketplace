@@ -1,4 +1,7 @@
+const apiShoppe = require('../api_marketplace/api_shoppe.js')
 const apiTokped = require('../api_marketplace/api_tokped.js')
+const apiBlibli = require('../api_marketplace/api_blibli.js')
+const apiLazada = require('../api_marketplace/api_lazada.js')
 
 const express = require('express')
 const router = express.Router();
@@ -8,6 +11,9 @@ let response = {
     message: "Something Wrong"
 }
 
+function unixTms(date){
+    return Math.floor(new Date(date).getTime()/1000.0)
+   }
 
 //get chat
 router.get('/chats', async function (req, res) {
@@ -34,9 +40,13 @@ router.get('/chats', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.getChats(shop_id, null, null, page_size=50);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getChat(shop_id, "username",unixTms(start_time),unixTms(end_time),page,limit);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
             res.send("still not avalable for lazada")
         }
@@ -73,9 +83,13 @@ router.get('/reply', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.getChats(shop_id, null, chatid, page_size=50);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getReply(chatid,shop_id, "username",page,limit);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
             res.send("still not avalable for lazada")
         }
@@ -84,7 +98,7 @@ router.get('/reply', async function (req, res) {
 });
 
 
-//get chat
+//post chat
 router.post('/reply', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
@@ -117,9 +131,13 @@ router.post('/reply', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.postReply(shop_id, chatid, message);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.postReply(chatid,shop_id, "username",message);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
             res.send("still not avalable for lazada")
         }
