@@ -37,4 +37,9 @@ pass : it.VCI.2020
 App Key: 106390<br>
 App Secret: 35D7YglUofxHQRZ85xzLd7dopVjo4XBw
 
+- Testing<br>
+Seller Email: lazada.lt.v2@gmail.com<br>
+Password: it.vci.development@gmail.com|it.VCI.2020<br>
+Shop ID: ID11EA9
+
 4. Blibli https://seller-api.blibli.com/docs/sections/60/contents/2867?title=introduction
