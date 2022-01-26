@@ -7,8 +7,7 @@ const express = require('express')
 const router = express.Router();
 
 let response = {
-    code: 404,
-    message: "Something Wrong"
+    timestamp: new Date().getTime()
 }
 
 function isFloat(n) {
@@ -449,7 +448,7 @@ router.post('/product/create', async function (req, res) {
             let image = imageReq
             let condition = kondisiShoppe
             let item_status = status
-            let wholesales ;
+            let wholesales;
 
 
             if (logistics) {
@@ -497,9 +496,41 @@ router.post('/product/create', async function (req, res) {
                 statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
             }
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            console.log(weight);
+            console.log("is weight");
+            if (brand === null || brand === undefined) {
+                response.message = "Field brand in body is required,";
+            }else if(height === null || height === undefined){
+                response.message = "Field height in body is required,";
+            }else if(length === null || length === undefined){
+                response.message = "Field length in body is required,";
+            }else if(width === null || width === undefined){
+                response.message = "Field width in body is required,";
+            }else if(height === null || height === undefined){
+                response.message = "Field height in body is required,";
+            }else if(weight === null || weight === undefined){
+                response.message = "Field weight in body is required,";
+            }else{
+                let arrayImage ="";
+                images.forEach(element => {
+                    arrayImage+= `<Image>${element.url}</Image>`
+                });
+                let hitAPI=await apiLazada.createProduct(
+                    category_id,arrayImage,product_name,description,brand,"","",url_video,"",sku,"","",stock
+    ,price,length,height,weight,width,"",arrayImage
+                )
+                res.status(hitAPI.code).send(hitAPI);
+                return;
+            }
+            res.status(response.code).send(response);
+            return
         }
     }
     res.status(response.code).send(response);
@@ -556,6 +587,8 @@ router.post('/product/update', async function (req, res) {
     const wholesale_price = body.wholesale_price
     const url_video = body.url_video
     const variant = body.variant
+    const sku_id = body.sku_id
+    
 
     // if (variant !== null && variant !== undefined) {
     //     if (variant.name === null && variant.name === undefined) {
@@ -933,11 +966,32 @@ router.post('/product/update', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            if (sku_id === null || sku_id === undefined) {
+                response.code = 400
+                response.message = "Field sku_id in body is required in lazada marketplace,";
+            }else{
+                let arrayImage ="";
+                images.forEach(element => {
+                    arrayImage+= `<Image>${element.url}</Image>`
+                });
+            let hitAPI = await apiLazada.updateProduct(product_id,product_name,description,sku_id,sku,stock,price,length,height,weight,width,arrayImage,null)
+            res.status(hitAPI.code).send(hitAPI);
+            return;
+            }
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response);
@@ -1033,6 +1087,7 @@ router.post('/product/update_price', async function (req, res) {
     const shop_id = search.shop_id;
     const new_price = search.new_price;
     const product_id = search.product_id;
+    const sku_id = search.sku_id;
     const marketplace = search.marketplace;
 
     console.log(product_id);
@@ -1051,6 +1106,9 @@ router.post('/product/update_price', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Parameter product_id is required"
+    } else if (marketplace == "lazada" && sku_id === null || sku_id === undefined) {
+        response.code = 400
+        response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
             let hitAPI = await apiTokped.updateProductPrice(shop_id, new_price, product_id);
@@ -1065,7 +1123,7 @@ router.post('/product/update_price', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.updateProductPrice(product_id, new_price)
+            let hitAPI = await apiLazada.updateProductPrice(product_id, new_price, sku_id)
             res.send(hitAPI);
             return;
         }
@@ -1080,6 +1138,7 @@ router.post('/product/update_stock', async function (req, res) {
     const new_stock = search.new_stock;
     const product_id = search.product_id;
     const marketplace = search.marketplace;
+    const sku_id = search.sku_id;
 
     console.log(shop_id);
     if (marketplace === null || marketplace === undefined) {
@@ -1097,6 +1156,9 @@ router.post('/product/update_stock', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Parameter product_id is required"
+    } else if (marketplace == "lazada" && sku_id === null || sku_id === undefined) {
+        response.code = 400
+        response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
             let hitAPI = await apiTokped.updateProductStock(shop_id, new_stock, product_id);
@@ -1112,7 +1174,7 @@ router.post('/product/update_stock', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.updateProductStock(product_id, new_stock);
+            let hitAPI = await apiLazada.updateProductStock(product_id, new_stock, sku_id);
             res.send(hitAPI);
             return;
         }
@@ -1146,11 +1208,23 @@ router.delete('/product/delete', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1176,6 +1250,12 @@ router.post('/product/update_state', async function (req, res) {
     } else if (state === null || state === undefined) {
         response.code = 400
         response.message = "Parameter state is required "
+    } else if (state !== "active" && state !== "inactive") {
+        response.code = 400
+        response.message = "Parameter state is only available for  active or inactive"
+    } else if (marketplace=="lazada" &&state !== "inactive") {
+        response.code = 400
+        response.message = "Parameter state on lazada is only available for inactive"
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Parameter product_id is required"
@@ -1185,11 +1265,17 @@ router.post('/product/update_state', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.updateState(shop_id, state == "active" ? true : false, product_id);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.updateState(product_id, shop_id, "username", state == "active" ? true : false);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.updateState(product_id);
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1219,11 +1305,17 @@ router.get('/product/category', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            let hitAPI = await apiShoppe.getCategory(shop_id);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getCategory(shop_id);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.getCategory(keyword);
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1251,11 +1343,23 @@ router.get('/product/etalase', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1288,11 +1392,23 @@ router.get('/product/variant', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1315,20 +1431,34 @@ router.get('/pickup-point', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getPickupPoint(shop_id);
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
 });
 
 //get get brand
-router.get('/get_brand', async function (req, res) {
+router.get('/brands', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
@@ -1348,15 +1478,25 @@ router.get('/get_brand', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.getBrands(shop_id, "username", keyword, page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            let hitAPI = await apiLazada.getBrands(page, limit)
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1380,13 +1520,29 @@ router.get('/logistic', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            res.send("still not avalable for tokopedia")
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1394,7 +1550,7 @@ router.get('/logistic', async function (req, res) {
 
 
 //creation status
-router.get('/creation-status', async function (req, res) {
+router.get('/product/creation-status', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
@@ -1418,11 +1574,78 @@ router.get('/creation-status', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            let hitAPI = await apiBlibli.getCreationStatus(requestId, shop_id, "username")
+            res.send(hitAPI);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+//get attribute
+router.get('/product/attribute', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+    const category_id = search.category_id;
+    const language = search.language ? search.language : "id";
+    let languageList = {
+        English: 'en',
+        Vietnamese: 'vi',
+        Indonesian: 'id',
+        Thai: 'th',
+        'Traditional-Chinese': 'zh-Hant',
+        "Simplified Chinese": 'zh-Hans',
+        "Simplified Chinese": 'zh-Hans',
+        "Malaysian Malay": "ms-my",
+        "Brazil": "pt-br",
+    }
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" || marketplace !== "blibli" || marketplace !== "shopee") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for lazada,shopee or blibli"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (category_id === null || category_id === undefined) {
+        response.code = 400
+        response.message = "Parameter category_id is required "
+    } else if (category_id === null || category_id === undefined) {
+        response.code = 400
+        response.message = "Parameter category_id is required "
+    } else if (Object.values(languageList).includes(language)) {
+        response.message = "possible value is en(English), vi(Vietnamese), id(Indonesian), th(Thai), zh-Hant(Traditional Chinese), zh-Hans(Simplified Chinese), ms-my(Malaysian Malay), pt-br(Brazil). default value is 'id"
+    } else {
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getStatusProduct(shop_id, requestId);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getAttribute(shop_id, language, category_id)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getAttribute(category_id, shop_id, "username")
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.getAttribute(category_id, language);
+            res.send(hitAPI);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -1453,13 +1676,29 @@ router.post('/request-pickup', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "blibli") {
-            res.send("still not avalable for blibli")
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)

@@ -224,18 +224,6 @@ function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page 
 
 
 
-function getProductVariant(getBy, product_id, cat_id) {
-  let params = {};
-  //optional
-  if (getBy == "product_id") {
-    if (product_id) params.product_id = product_id
-  } else if (getBy == "cat_id") {
-    if (cat_id) params.cat_id = cat_id
-  }
-  let path = `/inventory/v1/fs/${fs_id}/category/get_variant?cat_id=:cat_id`;
-
-  return hitApi('get', path, params, {});
-}
 
 function getProductVariant(getBy, product_id, cat_id) {
   let path = `/inventory/v1/fs/${fs_id}/category/get_variant`;
@@ -259,8 +247,6 @@ function updateProductPrice(shop_id, new_price, product_id) {
   let params = {};
   let bodyObj = {};
   //required
-  console.log("sa");
-  console.log(product_id);
   if (product_id) bodyObj.product_id = product_id
   if (new_price) bodyObj.new_price = new_price
 
@@ -272,6 +258,26 @@ function updateProductPrice(shop_id, new_price, product_id) {
   ];
 
   console.log(body);
+  if (shop_id) params.shop_id = shop_id
+
+  let path = `/inventory/v1/fs/${fs_id}/price/update`;
+
+  return hitApi('post', path, params, body);
+}
+
+function updateState(shop_id, unlist, product_id) {
+  let params = {};
+  //required
+
+  let body = {
+    "item_list": [
+        {
+            "item_id": product_id,
+            "unlist": unlist
+        }
+    ]
+};
+
   if (shop_id) params.shop_id = shop_id
 
   let path = `/inventory/v1/fs/${fs_id}/price/update`;
@@ -551,4 +557,4 @@ function getStatusProduct(shop_id, upload_id) {
 
 
 
-module.exports = {getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};
+module.exports = {updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};

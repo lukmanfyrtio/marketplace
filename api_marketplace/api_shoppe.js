@@ -311,6 +311,43 @@ function getChats(shop_id, item_id, comment_id, page_size=50) {
   );
 }
 
+//get category product
+//https://open.shopee.com/documents?module=89&type=1&id=562&version=2
+function getCategory(shop_id) {
+
+  //path 
+  let path = "/api/v2/product/get_category";
+  let param = {};
+  param.shop_id = shop_id;
+
+  //required
+  param.language = "en / id"
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+
+function getAttribute(shop_id,language,category_id) {
+
+  //path 
+  let path = "/v2/product/get_attributes";
+  let param = {};
+  param.shop_id = shop_id;
+  if(language)body.language=language
+  //required
+  if(category_id)body.language=category_id
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
 
 
 //post comment product
@@ -482,4 +519,4 @@ function buyerCancel(shop_id,order_sn,operation) {
 
 
 
-module.exports = { getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getChats, postReply ,updateProduct,createProduct,cancelOrder,buyerCancel};
+module.exports = {getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getChats, postReply ,updateProduct,createProduct,cancelOrder,buyerCancel};

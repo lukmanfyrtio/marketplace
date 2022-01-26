@@ -238,6 +238,24 @@ function postReply(questionCode, businessPartnerCode, username, answer) {
     return hitApi(method = "post", path, param, body)
 }
 
+function updateState(productSkus, storeCode, username,state) {
+    let path = `/proxy/seller/v1/products/statuses/archive`;
+    let param = {};
+    if(!state){
+        path = `/proxy/seller/v1/products/statuses/unarchive`;
+    }
+    if (storeCode) param.storeCode = storeCode
+    if (username) param.username = username
+    if (productSkus) param.productSkus = productSkus
+    let body = {
+        "productSkus": [
+          productSkus
+        ]
+      }
+
+    return hitApi(method = "post", path, param, body)
+}
+
 
 function getAllSettlements(storeCode, username, startDate, endDate, page = 0, size = 50) {
     let path = "/proxy/seller/v1/settlements/filter";
@@ -267,6 +285,32 @@ function getSingleSettlement(settlementId, storeCode, username) {
     if (storeCode) param.storeCode = storeCode
     if (username) param.username = username
     if (settlementId) param.settlementId = settlementId
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getAttribute(categoryCode, storeCode, username) {
+    let path = `/proxy/seller/v1/categories/${categoryCode}/attributes`;
+    let param = {};
+    if (storeCode) param.storeCode = storeCode
+    if (username) param.username = username
+    if (categoryCode) param['category-code'] = categoryCode
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getCategory(businessPartnerCode) {
+    let path = `/proxy/mta/api/businesspartner/v1/product/getCategory`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+
+    return hitApi(method = "get", path, param, {})
+}
+
+function getPickupPoint(businessPartnerCode) {
+    let path = `/proxy/mta/api/businesspartner/v1/product/getPickupPoint`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
 
     return hitApi(method = "get", path, param, {})
 }
@@ -333,6 +377,16 @@ function updateProduct(merchantCode, attributes, description, items, productName
 }
 
 
+function getCreationStatus(productSKu, storeCode,username) {
+    let path = `/proxy/seller/v1/product-submissions/${productSKu}`;
+    let param = {};
+    if (storeCode) param.storeCode = storeCode
+    if (username) param.username = username
+    if (productSKu) param[`product-sku`] = productSKu
+
+    return hitApi(method = "get", path, param)
+}
+
 function acceptOrder(orderId, businessPartnerCode) {
     let path = `/proxy/mta/api/businesspartner/v1/order/createPackage`;
     let param = {};
@@ -360,6 +414,6 @@ function getUUID() {
 }
 
 
-module.exports = { getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getChat, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder };
+module.exports = {getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getChat,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState};
 
 

@@ -11,9 +11,9 @@ let response = {
     message: "Something Wrong"
 }
 
-function unixTms(date){
-    return Math.floor(new Date(date).getTime()/1000.0)
-   }
+function unixTms(date) {
+    return Math.floor(new Date(date).getTime() / 1000.0)
+}
 
 //get chat
 router.get('/chats', async function (req, res) {
@@ -40,15 +40,19 @@ router.get('/chats', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getChats(shop_id, null, null, page_size=50);
+            let hitAPI = await apiShoppe.getChats(shop_id, null, null, page_size = 50);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getChat(shop_id, "username",unixTms(start_time),unixTms(end_time),page,limit);
+            let hitAPI = await apiBlibli.getChat(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -74,24 +78,28 @@ router.get('/reply', async function (req, res) {
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
-    }else if (chatid === null || chatid === undefined) {
+    } else if (chatid === null || chatid === undefined) {
         response.code = 400
         response.message = "Parameter chatid is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getReply(shop_id, page, limit, chatid) ;
+            let hitAPI = await apiTokped.getReply(shop_id, page, limit, chatid);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getChats(shop_id, null, chatid, page_size=50);
+            let hitAPI = await apiShoppe.getChats(shop_id, null, chatid, page_size = 50);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getReply(chatid,shop_id, "username",page,limit);
+            let hitAPI = await apiBlibli.getReply(chatid, shop_id, "username", page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)
@@ -119,7 +127,7 @@ router.post('/reply', async function (req, res) {
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
-    }else if (chatid === null || chatid === undefined) {
+    } else if (chatid === null || chatid === undefined) {
         response.code = 400
         response.message = "Parameter chatid is required "
     } else if (message === null || message === undefined) {
@@ -135,11 +143,15 @@ router.post('/reply', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.postReply(chatid,shop_id, "username",message);
+            let hitAPI = await apiBlibli.postReply(chatid, shop_id, "username", message);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
         }
     }
     res.status(response.code).send(response)

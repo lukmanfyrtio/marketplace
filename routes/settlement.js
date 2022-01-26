@@ -11,9 +11,9 @@ let response = {
     message: "Something Wrong"
 }
 
-function unixTms(date){
-    return Math.floor(new Date(date).getTime()/1000.0)
-   }
+function unixTms(date) {
+    return Math.floor(new Date(date).getTime() / 1000.0)
+}
 
 //Get All Settlement
 router.get('/settlements', async function (req, res) {
@@ -50,16 +50,20 @@ router.get('/settlements', async function (req, res) {
     } else if (!regex.test(end_time)) {
         response.code = 400
         response.message = "Parameter end_time format date is YYYY-MM-DD "
-    }else {
+    } else {
         if (marketplace == "tokopedia") {
             let hitAPI = await apiTokped.getAllSettlements(shop_id, page, limit, start_time, end_time);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getAllSettlements(shop_id, "username",unixTms(start_time),unixTms(end_time),page,limit)
+            let hitAPI = await apiBlibli.getAllSettlements(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -91,20 +95,27 @@ router.get('/settlement', async function (req, res) {
     } else if (orderid === null || orderid === undefined) {
         response.code = 400
         response.message = "Parameter orderid is required "
-    }else {
+    } else {
         if (marketplace == "tokopedia") {
             response.code = 400
             response.message = "This service is not yet available for tokopedia marketplace"
             return;
         } else if (marketplace == "shopee") {
-            res.send("still not avalable for shoppe")
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getSingleSettlement(orderid,shop_id, "username")
+            let hitAPI = await apiBlibli.getSingleSettlement(orderid, shop_id, "username")
             res.send(hitAPI);
-            return; 
+            return;
         } else if (marketplace == "lazada") {
-            res.send("still not avalable for lazada")
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
             return;
         }
     }
