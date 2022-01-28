@@ -594,7 +594,7 @@ router.post('/product/update', async function (req, res) {
     const url_video = body.url_video
     const variant = body.variant
     const sku_id = body.sku_id
-    
+
 
     // if (variant !== null && variant !== undefined) {
     //     if (variant.name === null && variant.name === undefined) {
@@ -1097,7 +1097,8 @@ router.get('/products', async function (req, res) {
         response.message = "Parameter shop_id is required"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1);
+            // let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1);
+            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', (req.envStore ? req.envStore : '')) // env
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -1925,5 +1926,3 @@ router.post('/request-pickup', async function (req, res) {
 
 
 module.exports = router;
-
-

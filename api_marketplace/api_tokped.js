@@ -12,10 +12,12 @@ function encodeToBase64(client_id, client_secret) {
   return s;
 }
 
-function getToken() {
+// function getToken() {
+function getToken(envStore) { // env
   let urlGetToken = 'https://accounts.tokopedia.com/token';
 
-  let encodedString = encodeToBase64(client_id, client_secret);
+  // let encodedString = encodeToBase64(client_id, client_secret);
+  let encodedString = encodeToBase64((envStore && envStore.clientid ? envStore.clientid : client_id), (envStore && envStore.clientkey ? envStore.clientkey : client_secret)) // env
   return new Promise(function (resolve, reject) {
     axios({
       method: 'post',
@@ -40,11 +42,13 @@ function getToken() {
 }
 
 
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null) {
+// async function hitApi(method = "empty", path = "empty", query = "empty", body = null) {
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null, envStore) { // env
   let responseData = {};
   responseData.marketplace = "tokopedia"
   responseData.timestamp = new Date().getTime();
-  let token = await getToken();
+  // let token = await getToken();
+  let token = await getToken(envStore) // env
   console.log(token);
   headers = {
     Authorization: `Bearer ${token ? token : "token"}`
@@ -53,10 +57,11 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
 
   let config = {
     method: method,
-    url: url + path,
+    // url: url + path,
+    url: (envStore && envStore.api_url ? envStore.api_url : url) + path, // env
     params: query,
     headers: headers,
-    
+
   }
 
   if(body&&Object.keys(body).length !== 0){
@@ -204,7 +209,8 @@ function getCategories(keyword) {
 }
 
 
-function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku) {
+// function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku) {
+function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku, envStore) {
   let params = {};
   //optional
   if (getBy == "pid") {
@@ -218,9 +224,11 @@ function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page 
     if (per_page !== null) params.per_page = per_page
     if (sort) params.sort = sort
   }
-  let path = `/inventory/v1/fs/${fs_id}/product/info`
+  // let path = `/inventory/v1/fs/${fs_id}/product/info`
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/info` // env
 
-  return hitApi('get', path, params, {});
+  // return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {}, envStore) // env
 }
 
 
