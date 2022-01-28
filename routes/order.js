@@ -154,11 +154,98 @@ router.post('/process/order', async function (req, res) {
     response.message = "Field orders is must be array object"
   } else {
     if (marketplace == "tokopedia") {
-      return;
+      if(action=="accept"){
+        let hitAPI;
+        var orderIds=[]
+        orders.forEach(element => {
+          if (element.order_id) {
+            response.code = 400
+            response.message = "Field order_id is required "
+          }else{
+            orderIds.push(element.order_id);
+            hitAPI = apiTokped.orderAccept(element.order_id)
+          }
+        });
+        res.status(await hitAPI.code).send(await hitAPI);
+        return;
+      }else if(action!="accept"&&action!="reject"){
+        response.code = 400
+        response.message = "Field action is only accept or reject for lazada marketplace"
+      }else{
+        orders.forEach(element => {
+          if (element.order_id) {
+            response.code = 400
+            response.message = "Field order_id is required "
+            res.status(response.code).send(response)
+            return;
+          } else if (element.cancel_reason) {
+            response.code = 400
+            response.message = "Field cancel_reason is required ";
+            res.status(response.code).send(response)
+            return;
+          }else{
+             hitAPI =apiTokped.orderReject(element.order_id,"5",element.cancel_reason)
+          }
+        });
+
+        res.status(await hitAPI.code).send(await hitAPI);
+        return;
+      }
     } else if (marketplace == "shopee") {
-      return;
+      let hitAPI;
+       if(action!=""&&action!="rejectCancellation"&&action!="reject"){
+        response.code = 400
+        response.message = "Field action is only acceptCancellation,rejectCancellation or reject for lazada marketplace"
+      }else if(action == 'acceptCancellation' || action == 'rejectCancellation'){
+        orders.forEach(element => {
+          if (element.order_id) {
+            response.code = 400
+            response.message = "Field order_id is required "
+            res.status(response.code).send(response)
+            return;
+          }else{
+          hitAPI =apiShoppe.buyerCancel(shop_id,element.order_id,action== 'acceptCancellation' ? 'ACCEPT' : 'REJECT')
+          }
+        });
+        res.status(await hitAPI.code).send(hitAPI);
+        return;
+      }else if(action=="reject"){
+        orders.forEach(element => {
+          if (element.order_id) {
+            response.code = 400
+            response.message = "Field order_id is required "
+            res.status(response.code).send(response)
+            return;
+          } else if (element.cancel_reason) {
+            response.code = 400
+            response.message = "Field cancel_reason is required ";
+            res.status(response.code).send(response)
+            return;
+          }else{
+             hitAPI =apiShoppe.cancelOrder(shop_id,element.order_id,cancel_reason)
+          }
+        });
+        res.status(await hitAPI.code).send(hitAPI);
+        return;
+      }
     } else if (marketplace == "blibli") {
-      return;
+      var orderIds=[]
+      if(action=="accept"){
+        orders.forEach(element => {
+          if (element.order_id) {
+            response.code = 400
+            response.message = "Field order_id is required "
+          }else if(action!="accept"){
+            response.code = 400
+            response.message = "Field action is only accept for blibli marketplace"
+          }else{
+            orderIds.push(element.order_id);
+          }
+        });
+        let hitAPI = await apiBlibli.acceptOrder(orderIds,shop_id)
+        res.status(hitAPI.code).send(hitAPI);
+        return;
+      }
     } else if (marketplace == "lazada") {
       if(action=="accept"){
         var orderIds=[]
@@ -181,6 +268,9 @@ router.post('/process/order', async function (req, res) {
         let hitAPI = await apiLazada.acceptOrder(orderIds,shipping_provider,delivery_type);
         res.status(hitAPI.code).send(hitAPI);
         return;
+      }else if(action!="accept"&&action!="reject"){
+        response.code = 400
+        response.message = "Field action is only accept or reject for lazada marketplace"
       }else{
         orders.forEach(element => {
           if (element.order_id) {
@@ -198,7 +288,7 @@ router.post('/process/order', async function (req, res) {
           }
         });
 
-        res.status(hitAPI.code).send(hitAPI);
+        res.status(await hitAPI.code).send(hitAPI);
         return;
       }
     }

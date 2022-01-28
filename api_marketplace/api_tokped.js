@@ -56,6 +56,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
     url: url + path,
     params: query,
     headers: headers,
+    
   }
 
   if(body&&Object.keys(body).length !== 0){
@@ -153,10 +154,10 @@ function orderAccept(order_id) {
 function requestPickup(order_id, shop_id) {
   let body = {};
   //required
-  if (order_id) body.order_id = order_id
-  if (shop_id) body.shop_id = shop_id
+  if (order_id) body.order_id = Number(order_id)
+  if (shop_id) body.shop_id = Number(shop_id)
 
-  return hitApi('post', `/inventory/v1/fs/${fs_id}/pick-up`, {}, body);
+  return hitApi('post', `/inventory/v1/fs/${fs_id}/pick-up`, null, body);
 }
 
 

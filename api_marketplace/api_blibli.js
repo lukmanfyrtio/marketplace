@@ -316,7 +316,7 @@ function getPickupPoint(businessPartnerCode) {
 }
 
 function createProductV3(storeCode, username, attributes, brandCode, categoryCode, description, dimension, imageMap, logistics, name, newBrand, pickupPointCode
-    , uniqueSellingPoint,preOrder, productItems, productType, uniqueSellingPoint, videoUrl) {
+    , uniqueSellingPoint,preOrder, productItems, productType, videoUrl) {
     let path = `/proxy/seller/v1/products/async`;
     let param = {};
     if (storeCode) param.storeCode = storeCode;
@@ -392,7 +392,7 @@ function acceptOrder(orderId, businessPartnerCode) {
     let param = {};
     if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
     let body = {
-        "orderItemIds": [`${orderId}`]
+        "orderItemIds": `${orderId}`
     }
 
     return hitApi(method = "post", path, param, body)

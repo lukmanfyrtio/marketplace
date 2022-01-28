@@ -18,8 +18,10 @@ function sign(apiName, param = {}) {
     let stringToBeSigned = apiName;
     // let body = "";
     for (const [key, value] of Object.entries(param)) {
+        console.log(value);
         stringToBeSigned = stringToBeSigned.concat(`${key}${value}`)
     }
+    console.log(param);
     console.log(stringToBeSigned);
     var hmac = crypto.createHmac('sha256', appSecret);
     //passing the data to be hashed
@@ -47,6 +49,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
     let token = '50000301e03rhbe1e09497dbremzyGoDRHajVuIl0HtxgwTyQQQvvgsfvXrkHi9'
     query.access_token = token;
     query.sign = sign(path, query)
+    console.log(query.sign);
     return new Promise(function (resolve, reject) {
         axios({
             method: method,
@@ -62,6 +65,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
             } else {
                 responseData.message = response.data.message;
             }
+            responseData.codeStatus=response.data.code;
             responseData.data = response.data.data;
             resolve(responseData);
 
@@ -293,7 +297,17 @@ function acceptOrder(order_item_ids, shipping_provider, delivery_type) {
     if (order_item_ids) param.order_item_ids = order_item_ids;
     if (shipping_provider) param.shipping_provider = shipping_provider;
     if (delivery_type) param.delivery_type = delivery_type;
+    console.log(order_item_ids);
+    return hitApi("post", path, param, {}, {})
+}
 
+function orderRts(order_item_ids, shipping_provider, delivery_type,tracking_number) {
+    let path = '/order/rts'
+    let param = getCommonParam();
+    if (order_item_ids) param.order_item_ids = order_item_ids;
+    if (shipping_provider) param.shipping_provider = shipping_provider;
+    if (delivery_type) param.delivery_type = delivery_type;
+    if (tracking_number) param.tracking_number = tracking_number;
     return hitApi("post", path, param, {}, {})
 }
 
@@ -342,4 +356,4 @@ function getBrands(page = 0, size = 50) {
     return hitApi("get", path, param, {}, {})
 }
 
-module.exports = { getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder };
+module.exports = { orderRts,getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder };

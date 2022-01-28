@@ -56,11 +56,8 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            response.code = 400
-            response.message = "still not avalable for shoppe"
-            response.marketplace = "shopee"
-            res.status(response.code).send(response);
-            return;
+            let hitAPI = await apiShoppe.getAllSettlement(shop_id,unixTms(start_time), unixTms(end_time),page,limit)
+            res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.getAllSettlements(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit)
@@ -101,10 +98,8 @@ router.get('/settlement', async function (req, res) {
             response.message = "This service is not yet available for tokopedia marketplace"
             return;
         } else if (marketplace == "shopee") {
-            response.code = 400
-            response.message = "still not avalable for shoppe"
-            response.marketplace = "shopee"
-            res.status(response.code).send(response);
+            let hitAPI = await apiShoppe.getSingleSettlement(shop_id,orderid);
+            res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.getSingleSettlement(orderid, shop_id, "username")
@@ -115,7 +110,6 @@ router.get('/settlement', async function (req, res) {
             response.message = "still not avalable for lazada"
             response.marketplace = "lazada"
             res.status(response.code).send(response);
-            return;
             return;
         }
     }

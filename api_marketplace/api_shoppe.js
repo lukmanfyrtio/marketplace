@@ -270,6 +270,44 @@ function updateStock(shop_id, item_id, new_stock) {
   );
 }
 
+function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn) {
+  //path 
+  let path = "/api/v2/product/update_stock"
+  let param = {};
+  param.shop_id = shop_id;
+
+  let body = {};
+  if (order_sn) body.order_sn = order_sn
+
+  if (package_number) body.package_number = package_number
+
+  let pickup={}
+  if (address_id) pickup.address_id = address_id
+  if (pickup_time_id) pickup.pickup_time_id = pickup_time_id
+  if (tracking_number) pickup.tracking_number = tracking_number
+
+  let dropoff={}
+  if (branch_id) dropoff.branch_id = branch_id
+  if (sender_real_name) dropoff.sender_real_name = sender_real_name
+  if (tracking_number) dropoff.tracking_number = tracking_number
+  if (slug) dropoff.slug = slug
+
+  let non_integrated={}
+  if (non_integrated_pkgn) non_integrated.non_integrated_pkgn = non_integrated_pkgn
+
+  //required
+  if(pickup!=={})body.pickup=pickup
+  if(dropoff!=={})body.dropoff=dropoff
+  if(non_integrated!=={})body.non_integrated=non_integrated
+
+  return hitApi(
+    'post', //method
+    path, //path 
+    param,//query
+    body//body
+  );
+}
+
 
 
 //product get module list
@@ -280,6 +318,23 @@ function getModuleList(item_id_list) {
   let param = {};
   //required
   if (item_id_list) param.item_id_list = item_id_list
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+// get ship parameter
+//https://open.shopee.com/documents/v2/v2.logistics.get_shipping_parameter?module=95&type=1
+function getShipParameter(shop_id,order_sn) {
+  //path 
+  let path = "/api/v2/product/get_model_list"
+  let param = {};
+  //required
+  if (shop_id) param.shop_id = shop_id
+  if (order_sn) param.order_sn = order_sn
 
   return hitApi(
     'get', //method
@@ -341,6 +396,57 @@ function getAttribute(shop_id,language,category_id) {
   //required
   if(category_id)body.language=category_id
 
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+
+function getSingleSettlement(shop_id,order_sn) {
+
+  //path 
+  let path = "/v2/payment/get_escrow_detail";
+  let param = {};
+  let body = {};
+  param.shop_id = shop_id;
+  if(order_sn)body.order_sn=order_sn
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//qu
+    body
+  );
+}
+
+function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50,page_no=0) {
+
+  //path 
+  let path = "/v2/payment/get_escrow_detail";
+  let param = {};
+  let body = {};
+  param.shop_id = shop_id;
+  if(release_time_from)body.release_time_from=release_time_from
+  if(release_time_to)body.release_time_to=release_time_to
+  body.page_size=page_size
+  if(page_no)body.order_sn=page_no
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//qu
+    body
+  );
+}
+
+function getLogistic(shop_id) {
+
+  //path 
+  let path = "/v2/logistics/get_channel_list";
+  let param = {};
+  param.shop_id = shop_id;
   return hitApi(
     'get', //method
     path, //path 
@@ -519,4 +625,4 @@ function buyerCancel(shop_id,order_sn,operation) {
 
 
 
-module.exports = {getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getChats, postReply ,updateProduct,createProduct,cancelOrder,buyerCancel};
+module.exports = {getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getChats, postReply ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
