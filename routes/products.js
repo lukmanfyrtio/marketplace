@@ -1862,15 +1862,78 @@ router.post('/request-pickup', async function (req, res) {
             })
             }
         } else if (marketplace == "blibli") {
-            response.code = 400
-            response.message = "still not avalable for blibli"
+            response.code = 200;
+            response.message = "Your request has been processed successfully"
             response.marketplace = "blibli"
-            res.status(response.code).send(response);
-            return;
+             if(orders.length==0){
+                response.code = 400
+                response.message = "Field orders can`t empty"
+                res.status(response.code).send(response);
+                return;
+            }else{
+            orders.forEach(async element => {
+                if(element.product_type){
+                    response.code = 400
+                    response.message = "Field product_type is required in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }else if(element.product_type=="regular"){
+                    if(element.package_id){
+                        response.code = 400
+                        response.message = "Field order.regular is required in blibli"
+                        res.status(response.code).send(response);
+                        return;
+                    }else{
+                        if(element.delivery_type){
+                            let enumDelivery=['pickup', 'dropoff']
+                            if(enumDelivery.includes(element.delivery_type)){
+                                if(element.delivery_type=="dropoff"){
+                                    if(!element.no_awb){
+                                        response.code = 400
+                                        response.message = "Field order.no_awb mandatory if delivery_type value is dropoff"
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }
+                                }
+                            }else{
+                                response.code = 400
+                                response.message = "possible order.delivery_type for blibli is pickup or dropoff,"
+                                res.status(response.code).send(response);
+                                return;
+                            }
+                        }
+                    }
+                    response.code = 400
+                    response.message = "Field product_type is required in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }else if(element.product_type=="bigProduct"){
+                    response.code = 400
+                    response.message = "Field product_type is required in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }else if(element.product_type=="bopis"){
+                    response.code = 400
+                    response.message = "Field product_type is required in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }else if(element.product_type=="partial"){
+                    response.code = 400
+                    response.message = "Field product_type is required in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }else{
+                    response.code = 400
+                    response.message = "product_type not support in blibli"
+                    res.status(response.code).send(response);
+                    return;
+                }
+            })
+            }
         } else if (marketplace == "lazada") {
             response.code = 200;
             response.message = "Your request has been processed successfully"
-            response.marketplace = "tokopedia"
+            response.marketplace = "lazada"
              if(orders.length==0){
                 response.code = 400
                 response.message = "Field orders can`t empty"
@@ -1918,6 +1981,257 @@ router.post('/request-pickup', async function (req, res) {
         return;
         }
     }
+});
+
+
+//get review
+router.get('/product/reviews', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+
+    const productId = search.productId;
+
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        console.log(shop_id);
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    } else if (productId === null || productId === undefined) {
+        response.code = 400
+        response.message = "Parameter productId is required"
+    } else {
+        if (marketplace == "tokopedia") {
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "shopee") {
+            response.code = 400
+            response.message = "still not avalable for shopee"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.getReviewProduct(productId)
+            res.status(hitAPI.code).send(hitAPI);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+//get review
+router.get('/product/reviews/reply', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+
+    const review_id = search.review_id;
+    const message = search.message;
+
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        console.log(shop_id);
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    } else if (review_id === null || review_id === undefined) {
+        response.code = 400
+        response.message = "Parameter review_id is required"
+    } else if (message === null || message === undefined) {
+        response.code = 400
+        response.message = "Parameter message is required"
+    }else {
+        if (marketplace == "tokopedia") {
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "shopee") {
+            response.code = 400
+            response.message = "still not avalable for shopee"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.sellerPostReview(review_id,message)
+            res.status(hitAPI.code).send(hitAPI);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+
+router.get('/product/discussion/list', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const productId = search.productId;
+    const page = search.page;
+    const limit = search.limit;
+    const marketplace = search.marketplace;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else {
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getProductDiscussion(shop_id,productId,page,limit)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id,productId,null,page,limit)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getProductDiscussion(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+//get reply
+router.get('/product/discussion', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const start_time = search.start_time;
+    const end_time = search.end_time;
+    const page = search.page;
+    const limit = search.limit;
+    const marketplace = search.marketplace;
+    const comment_id = search.comment_id;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (comment_id === null || comment_id === undefined) {
+        response.code = 400
+        response.message = "Parameter comment_id is required "
+    } else {
+        if (marketplace == "tokopedia") {
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id,null,comment_id,page,limit)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getReply(comment_id, shop_id, "username", page, limit);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+
+
+
+
+//post chat
+router.post('/product/discussion/reply', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const start_time = search.start_time;
+    const end_time = search.end_time;
+    const page = search.page;
+    const limit = search.limit;
+    const marketplace = search.marketplace;
+    const message = search.message;
+    const chatid = search.chatid;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (chatid === null || chatid === undefined) {
+        response.code = 400
+        response.message = "Parameter chatid is required "
+    } else if (message === null || message === undefined) {
+        response.code = 400
+        response.message = "Parameter message is required "
+    } else {
+        if (marketplace == "tokopedia") {
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.postProductDiscussion(shop_id,comment_id,message)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.postReply(chatid, shop_id, "username", message);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
 });
 
 

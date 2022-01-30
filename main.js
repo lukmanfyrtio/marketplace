@@ -1,6 +1,7 @@
 const orderRoutes = require('./routes/order.js')
 const productRoutes = require('./routes/products.js')
 const settlementRoutes = require('./routes/settlement.js')
+const returnRoutes = require('./routes/return.js')
 const chatRoutes = require('./routes/chat.js')
 const express = require('express')
 const db = require('mariadb')
@@ -60,7 +61,7 @@ app.use(function(req, res, next){
 })
 
 app.use(express.json())
-app.use('/', orderRoutes,productRoutes,settlementRoutes,chatRoutes)
+app.use('/', orderRoutes,productRoutes,settlementRoutes,chatRoutes,returnRoutes)
 app.listen(port, () => {
   getEnvStores()
   // console.log(`Marketplace gateway started on port ${port}`)

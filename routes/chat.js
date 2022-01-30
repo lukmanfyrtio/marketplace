@@ -40,12 +40,16 @@ router.get('/chats', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getChats(shop_id, null, null, page_size = 50);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for shopee"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getChat(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
             response.code = 400
@@ -87,12 +91,16 @@ router.get('/reply', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getChats(shop_id, null, chatid, page_size = 50);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for shopee"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getReply(chatid, shop_id, "username", page, limit);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
             response.code = 400
@@ -139,12 +147,16 @@ router.post('/reply', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.postReply(shop_id, chatid, message);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for shopee"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.postReply(chatid, shop_id, "username", message);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
             response.code = 400

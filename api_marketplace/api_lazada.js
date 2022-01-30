@@ -356,4 +356,66 @@ function getBrands(page = 0, size = 50) {
     return hitApi("get", path, param, {}, {})
 }
 
-module.exports = { orderRts,getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder };
+
+function getSingleReturn(reverse_order_id) {
+    let path = '/order/reverse/return/detail/list';
+    let param = getCommonParam();
+
+    if (reverse_order_id) param.reverse_order_id = reverse_order_id;
+
+    return hitApi("get", path, param, {}, {})
+}
+
+function getAllReturns(page_size,page_no) {
+    let path = '/reverse/getreverseordersforseller';
+    let param = getCommonParam();
+
+    if (page_size) param.page_size = page_size;
+    if (page_no) param.page_no = page_no;
+
+    return hitApi("get", path, param, {}, {})
+}
+
+
+function acceptRejectReturn(action,reverse_order_id,reverse_order_item_ids,reason_id,comment,image_info) {
+    let path = '/reverse/getreverseordersforseller';
+    let param = getCommonParam();
+
+    if (action) param.action = action;
+    if (reverse_order_id) param.reverse_order_id = reverse_order_id;
+    if (reverse_order_item_ids) param.reverse_order_item_ids = reverse_order_item_ids;
+    if (reason_id) param.reason_id = reason_id;
+    if (comment) param.comment = comment;
+    if (image_info) param.image_info = image_info;
+
+    return hitApi("get", path, param, {}, {})
+}
+
+
+function getReviewProduct(item_id,current,page_size,order_id,start_time,end_time,status_filter,content_filter) {
+    let path = '/order/reverse/return/detail/list';
+    let param = getCommonParam();
+
+    if (item_id) param.item_id = item_id;
+    if (current) param.current = reverse_order_id;
+    if (page_size) param.page_size = page_size;
+    if (order_id) param.order_id = order_id;
+    if (start_time) param.start_time = start_time;
+    if (end_time) param.end_time = end_time;
+    if (status_filter) param.status_filter = status_filter;
+    if (content_filter) param.content_filter = content_filter;
+
+    return hitApi("get", path, param, {}, {})
+}
+
+
+function sellerPostReview(id,content) {
+    let path = '/order/reverse/return/detail/list';
+    let param = getCommonParam();
+
+    if (id) param.id = id;
+    if (content) param.content = content;
+
+    return hitApi("get", path, param, {}, {})
+}
+module.exports = { orderRts,getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder,getSingleReturn,getAllReturns,acceptRejectReturn,getReviewProduct,sellerPostReview };

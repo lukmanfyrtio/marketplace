@@ -196,7 +196,7 @@ function updateProductStock(itemId, username, storeCode, stock) {
     return hitApi(method = "put", path, param, body)
 }
 
-function getChat(businessPartnerCode, username, startDate, endDate, page = 0, size = 50) {
+function getProductDiscussion(businessPartnerCode, username, startDate, endDate, page = 0, size = 50) {
     let path = "/proxy/mta/api/businesspartner/v1/product/discussion/questions";
     let param = {};
     if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
@@ -387,6 +387,7 @@ function getCreationStatus(productSKu, storeCode,username) {
     return hitApi(method = "get", path, param)
 }
 
+
 function acceptOrder(orderId, businessPartnerCode) {
     let path = `/proxy/mta/api/businesspartner/v1/order/createPackage`;
     let param = {};
@@ -398,6 +399,76 @@ function acceptOrder(orderId, businessPartnerCode) {
     return hitApi(method = "post", path, param, body)
 }
 
+
+function getAllReturns(businessPartnerCode,page,size,orderIdOrItemId,returDate,rmaResolution,status) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/getReturnedOrderSummary`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (orderIdOrItemId) param.orderIdOrItemId = orderIdOrItemId
+    if (returDate) param.returDate = returDate
+    if (rmaResolution) param.rmaResolution = rmaResolution
+    if (status) param.status = status
+
+    if (page) param.page = page
+    if (size) param.size = size
+
+    return hitApi(method = "get", path, param)
+}
+
+function getSingleReturn(businessPartnerCode, rmaId,orderNo,orderItemNo) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/getReturnedOrderDetail`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (rmaId) param.rmaId = rmaId
+    if (orderNo) param.orderNo = orderNo
+    if (orderItemNo) param.orderItemNo = orderItemNo
+
+    return hitApi(method = "get", path, param)
+}
+
+
+function regularPickup(packageid, storeCode,username,awbNo) {
+    let path = `/proxy/seller/v1/orders/regular/${packageid}/fulfill`;
+    let param = {};
+    let body = {};
+    if (username) param.username = username
+    if (storeCode) param.storeCode = storeCode
+    if (packageid) param.packageid = packageid
+
+    if (awbNo) body.awbNo = awbNo
+
+    return hitApi(method = "post", path, param, body)
+}
+
+function bigProductPickup(packageid, storeCode,username,deliveryStartDate,deliveryEndDate,courierName,courierType,settlementCode) {
+    let path = `/proxy/seller/v1/orders/shipping-by-seller/${packageid}/ready-to-ship`;
+    let param = {};
+    let body = {};
+
+    let courier={};
+
+
+    if (courierName) courier.name = courierName
+    if (courierType) courier.type = courierType
+
+    let deliveryDate={};
+    if (deliveryStartDate) deliveryDate.end = deliveryStartDate
+    if (deliveryEndDate) deliveryDate.start = deliveryEndDate
+
+
+    if (settlementCode) body.settlementCode = settlementCode
+    if (deliveryDate!=={}) body.settlementCode = settlementCode
+    if (courier!=={}) body.settlementCode = settlementCode
+
+
+    if (username) param.username = username
+    if (storeCode) param.storeCode = storeCode
+    if (packageid) param.packageid = packageid
+
+    if (awbNo) body.awbNo = awbNo
+
+    return hitApi(method = "post", path, param, body)
+}
 function getUUID() {
     return new Promise(function (resolve, reject) {
         axios.get('https://www.uuidgenerator.net/api/version1', {
@@ -414,6 +485,6 @@ function getUUID() {
 }
 
 
-module.exports = {getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getChat,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState};
+module.exports = {getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState,getAllReturns,getSingleReturn};
 
 

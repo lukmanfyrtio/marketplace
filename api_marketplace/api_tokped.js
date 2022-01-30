@@ -562,8 +562,31 @@ function getStatusProduct(shop_id, upload_id) {
 }
 
 
+function getResolutionTicket(shop_id,start_date ,end_date) {
+  let params = {};
+  //required
+  if (shop_id) params.shop_id = Number(shop_id)
+  if (start_date) params.start_date =start_date
+  if (end_date) params.end_date =end_date
+  let path = `/resolution/v1/fs/${fs_id}/ticket`;
+
+  return hitApi('get', path, params, {});
+}
+
+
+function getProductDiscussion(shop_id,product_id ,page,per_page) {
+  let params = {};
+  //required
+  if (shop_id) params.shop_id = Number(shop_id)
+  if (product_id) params.product_id =product_id
+  if (page) params.page =page
+  if (per_page) params.per_page =per_page
+  let path = `/v1/discussion/fs/${fs_id}/list`;
+
+  return hitApi('get', path, params, {});
+}
 
 
 
 
-module.exports = {updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};
+module.exports = {getProductDiscussion,getResolutionTicket,updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct};

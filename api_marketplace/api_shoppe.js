@@ -346,7 +346,7 @@ function getShipParameter(shop_id,order_sn) {
 
 //get comments product
 //https://open.shopee.com/documents?module=89&type=1&id=562&version=2
-function getChats(shop_id, item_id, comment_id, page_size=50) {
+function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size="") {
 
   //path 
   let path = "/api/v2/product/get_comment";
@@ -356,7 +356,7 @@ function getChats(shop_id, item_id, comment_id, page_size=50) {
   //required
   if (item_id) param.item_id = item_id
   if (comment_id) param.comment_id = comment_id
-  param.cursor = ""
+  param.cursor = size
   if (page_size) param.page_size = page_size
 
   return hitApi(
@@ -454,6 +454,75 @@ function getLogistic(shop_id) {
   );
 }
 
+function getReturns(shop_id,page_no,page_size,create_time_from,create_time_to) {
+
+  //path 
+  let path = "/api/v2/returns/get_return_list";
+  let param = {};
+  if(shop_id)param.shop_id = shop_id;
+  param.page_no = page_no;
+  if(page_size)param.page_size = page_size;
+  if(create_time_from) param.create_time_from = create_time_from;
+  if(create_time_from)param.create_time_to = create_time_from;
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+
+function getReturnDetail(shop_id,return_sn) {
+
+  //path 
+  let path = "/api/v2/returns/get_return_detail";
+  let param = {};
+  param.shop_id = shop_id;
+  if(return_sn)param.return_sn = return_sn;
+
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+function confirmReturn(shop_id,return_sn) {
+  //path 
+  let path = "/api/v2/returns/confirm";
+  let param = {};
+  let body = {}
+  param.shop_id = shop_id;
+  if(return_sn)body.return_sn = return_sn;
+
+  return hitApi(
+    'post', //method
+    path, //path 
+    param,//query
+    body//body
+  );
+}
+
+
+function disputeReturn(shop_id,return_sn) {
+  //path 
+  let path = "/api/v2/returns/dispute";
+  let param = {};
+  let body = {}
+  param.shop_id = shop_id;
+  if(return_sn)body.return_sn = return_sn;
+  if(email)body.email = email;
+  if(dispute_reason)body.dispute_reason = dispute_reason;
+  if(dispute_text_reason)body.dispute_text_reason = dispute_text_reason;
+  if(image)body.image = image;
+
+  return hitApi(
+    'post', //method
+    path, //path 
+    param,//query
+    body//body
+  );
+}
 
 
 //post comment product
@@ -464,9 +533,9 @@ function getLogistic(shop_id) {
 //             "comment": "Your smile is the direction of our efforts, welcome to your next visit！"
 //         }
 //     ]
-function postReply(shop_id,comment_id,message) {
+function postProductDiscussion(shop_id,comment_id,message) {
   //path 
-  let path = "/api/v2/product/update_stock";
+  let path = "/api/v2/product/reply_comment";
   let param = {};
   param.shop_id = shop_id;
   let body = {
@@ -625,4 +694,4 @@ function buyerCancel(shop_id,order_sn,operation) {
 
 
 
-module.exports = {getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getChats, postReply ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
