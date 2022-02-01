@@ -10,10 +10,10 @@ const app = express()
 const port = 80 // dev
 // const port = 7222 // local
 const cdb = {
-  host: 'mpdbv1', // dev
-  port: '3306', // dev
-  // host: 'localhost', // local
-  // port: '8888', // local
+  // host: 'mpdbv1', // dev
+  // port: '3306', // dev
+  host: 'localhost', // local
+  port: '8888', // local
   database: 'mpapi',
   user:'mpdb',
   password: 'Aku4@kua',

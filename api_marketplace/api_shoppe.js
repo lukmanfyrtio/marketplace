@@ -31,8 +31,9 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       data: body
 
     }).then(function (response) {
+      console.log(response);
       responseData.code = response.status;
-      responseData.message = response.data.message;
+      responseData.message = response.data.msg;
       resolve(responseData);
 
     }).catch((e) => {
@@ -454,6 +455,7 @@ function getLogistic(shop_id) {
   );
 }
 
+
 function getReturns(shop_id,page_no,page_size,create_time_from,create_time_to) {
 
   //path 
@@ -691,7 +693,39 @@ function buyerCancel(shop_id,order_sn,operation) {
   );
 }
 
+function getShopInfo(shop_id) {
+
+  //path 
+  let path = "/api/v1/shop/get";
+  let param = {};
+  if(shop_id)param.shop_id = shop_id;
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+  );
+}
+
+function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name) {
+
+  //path 
+  let path = "/api/v1/shop/update";
+  let param = {};
+  if(shop_id)param.shop_id = shop_id;
+
+  if(shop_description)param.shop_description = shop_description;
+  if(enable_display_unitno)param.enable_display_unitno = enable_display_unitno;
+  if(disable_make_offer)param.disable_make_offer = disable_make_offer;
+  if(videos)param.videos = videos;
+  if(images)param.images = images;
+  if(shop_name)param.shop_name = shop_name;
+  return hitApi(
+    'post', //method
+    path, //path 
+    param,//query
+  );
+}
 
 
 
-module.exports = {getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

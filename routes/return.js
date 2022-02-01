@@ -5,6 +5,7 @@ const apiLazada = require('../api_marketplace/api_lazada.js')
 
 const express = require('express')
 const router = express.Router();
+const moment = require('moment')
 
 let response = {
     code: 404,
@@ -24,6 +25,7 @@ router.get('/return/list', async function (req, res) {
     const body = req.body;
     const param = req.query;
     const shop_id = param.shop_id;
+    const marketplace = param.marketplace;
     const page = param.page;//tokped no available
     const limit = param.limit;//tokped no available
     const start_time = param.start_time;
@@ -41,10 +43,10 @@ router.get('/return/list', async function (req, res) {
         response.code = 400
         response.message = "Parameter shop_id is required "
     }else{
-        if(start_time !== null || start_time !== undefined&&!isValidDate(start_time)){
+        if(start_time !== null && start_time !== undefined&&!isValidDate(start_time)){
                 response.code = 400
                 response.message = "Parameter start_time format is YYYY-MM-DD"
-        }if(end_time !== null || end_time !== undefined&&!isValidDate(end_time)){
+        }else if(end_time !== null && end_time !== undefined&&!isValidDate(end_time)){
             response.code = 400
             response.message = "Parameter end_time format is YYYY-MM-DD"
     }    else if (marketplace == "tokopedia") {
@@ -65,6 +67,7 @@ router.get('/return/list', async function (req, res) {
             return;
         }
     }
+    res.status(response.code).send(response);
 });
 
 router.get('/return', async function (req, res) {

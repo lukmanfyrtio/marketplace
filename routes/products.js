@@ -2,6 +2,7 @@ const apiShoppe = require('../api_marketplace/api_shoppe.js')
 const apiTokped = require('../api_marketplace/api_tokped.js')
 const apiBlibli = require('../api_marketplace/api_blibli.js')
 const apiLazada = require('../api_marketplace/api_lazada.js')
+const moment = require('moment')
 
 const express = require('express')
 const router = express.Router();
@@ -13,6 +14,10 @@ let response = {
 function isFloat(n) {
     return Number(n) === n && n % 1 !== 0;
 }
+
+function isValidDate(date) {
+    return moment(date, 'YYYY-MM-DD', true).isValid();
+  }
 
 //create product
 router.post('/product/create', async function (req, res) {
@@ -2235,6 +2240,195 @@ router.post('/product/discussion/reply', async function (req, res) {
 });
 
 
+
+
+//get shop info
+router.get('/shop_info', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+
+    const page = search.page;
+    const limit = search.limit;
+
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        console.log(shop_id);
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    }else {
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getShopInfo(shop_id,page,limit);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getShopInfo(shop_id);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+
+//get shop info
+router.post('/shop_info/update', async function (req, res) {
+    const search = req.query;
+    const body = req.body;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+
+
+    const display_pickup_address = body.display_pickup_address;
+    const shop_name = body.shop_name;
+    const offer = body.offer;
+    const shop_description = body.shop_description;
+    const videos = body.videos;
+    const images = body.images;
+    const start_date = body.start_date;
+    const end_date = body.end_date;
+    const action = body.action;
+
+    const close_note = body.close_note;
+    const close_now = body.close_now;
+    
+
+
+
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        console.log(shop_id);
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    }else {
+        if (marketplace == "tokopedia") {
+            if(action === null || action === undefined){
+                response.code = 400
+                response.message = "Field action on body is required on tokopedia"
+            }else if(action !== "open" && action !== "close"){
+                response.code = 400
+                response.message = "Field action on body action is only available open or close"
+            }else{
+                if(action==="close"){
+                    if(start_date === null || start_date === undefined){
+                        response.code = 400
+                        response.message = "Field start_date on body is required if action is close"
+                    }else if(!isValidDate(start_date)){
+                        response.code = 400
+                        response.message = "Field start_date on body  format is YYYY-MM-DD"
+                    }else if(end_date === null || end_date === undefined){
+                        response.code = 400
+                        response.message = "Field end_date on body is required if action is close"
+                    }else if(!isValidDate(end_date)){
+                        response.code = 400
+                        response.message = "Field end_date on body format is YYYY-MM-DD"
+                    }else if(close_now === null || close_now === undefined){
+                        response.code = 400
+                        response.message = "Field close_now on body is required if action is close"
+                    }else if(!typeof close_now == "boolean"){
+                        response.code = 400
+                        response.message = "Field close_now on body should be boolean"
+                    }if(close_note === null || close_note === undefined){
+                        response.code = 400
+                        response.message = "Field close_note on body is required if action is close"
+                    }else{
+                        let hitAPI = await apiTokped.updateShopInfo(shop_id,action,moment(start_date).format("YYYYMMDD"),moment(end_date).format("YYYYMMDD"),close_note,close_now);
+                        res.send(hitAPI);
+                        return;
+                    }
+                }else{
+                    let hitAPI = await apiTokped.updateShopInfo(shop_id,action,start_date,end_date,close_note,close_now);
+                    res.send(hitAPI);
+                    return;
+                }
+            }
+        } else if (marketplace == "shopee") {
+
+            if(offer){
+                if(offer!==true||offer!==false){
+                    response.code = 400
+                    response.message = "Parameter offer is only available true or false"
+                    res.status(response.code).send(response);
+                    return;
+                }
+            }
+            if(display_pickup_address){
+                if(display_pickup_address!==true||display_pickup_address!==false){
+                    response.code = 400
+                    response.message = "Parameter display_pickup_address is only available true or false"
+                    res.status(response.code).send(response);
+                    return;
+                }
+            }
+
+            let arrayImage=[];
+            if (images) {
+                images.forEach(element => {
+                    if (element.url === null && element.url === undefined) {
+                        response.code = 400;
+                        response.message = "url is required in images field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        arrayImage.push(element.url);
+                    }
+                });
+            }
+
+            let arrayVideo=[];
+            if (videos) {
+                videos.forEach(element => {
+                    if (element.url === null && element.url === undefined) {
+                        response.code = 400;
+                        response.message = "url is required in images field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        arrayVideo.push(element.url);
+                    }
+                });
+            }
+            let hitAPI = await apiShoppe.updateShopInfo(shop_id,shop_description,display_pickup_address,offer?0:1,arrayVideo,arrayImage,shop_name)
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
 
 
 

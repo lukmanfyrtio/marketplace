@@ -66,7 +66,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
                 responseData.message = response.data.message;
             }
             responseData.codeStatus=response.data.code;
-            responseData.data = response.data.data;
+            responseData.data = response.data.data==null?response.data.result:response.data.data;
             resolve(responseData);
 
         }).catch((e) => {
