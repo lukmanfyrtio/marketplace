@@ -10,10 +10,10 @@ const app = express()
 const port = 80 // dev
 // const port = 7222 // local
 const cdb = {
-  // host: 'mpdbv1', // dev
-  // port: '3306', // dev
-  host: 'localhost', // local
-  port: '8888', // local
+  host: 'mpdbv1', // dev
+  port: '3306', // dev
+  // host: 'localhost', // local
+  // port: '8888', // local
   database: 'mpapi',
   user:'mpdb',
   password: 'Aku4@kua',
@@ -46,17 +46,30 @@ async function getEnvStores() {
     `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, code_1, code_2, code_3, code_4, code_5, tipe from stores`
   )
   if (rs && rs.text) console.log(rs)
-  else process.env.stores = jsonS(rs)
+  else {
+    // process.env.mpstores = jsonS(rs)
+    const mpstores = rs ? rs : []
+    for (const mpstore of mpstores) {
+      process.env['mpstore' + mpstore.shop_id] = jsonS(mpstore)
+      // process.env['mpstore' + mpstore.shop_id + mpstore.marketplace] = jsonS(mpstore)
+    }
+  }
+  // console.log(process.env)
 }
 
 // env selalu dikeluarkan di tiap hit
 app.use(function(req, res, next){
-  req.envStore = Object.assign([],
-    process.env.stores ?
-      jsonP(process.env.stores).filter(store => {
-        return (store.marketplace === req.query.marketplace && store.shop_id === req.query.shop_id)
-      }) : []
-  )[0]
+  // req.envStore = Object.assign([],
+  //   process.env.mpstores ?
+  //     jsonP(process.env.mpstores).filter(store => {
+  //       return (store.marketplace === req.query.marketplace && store.shop_id === req.query.shop_id)
+  //     }) : []
+  // )[0]
+  req.envStore = Object.assign({},
+    jsonP(process.env['mpstore' + req.query.shop_id])
+    // jsonP(process.env['mpstore' + req.query.shop_id + req.query.marketplace])
+  )
+  // console.log(req.envStore)
   next()
 })
 
