@@ -2004,15 +2004,51 @@ router.post('/request-pickup', async function (req, res) {
                             }
                         }
                     } else if (element.product_type == "bopis") {
-                        response.code = 400
-                        response.message = "Field product_type is required in blibli"
-                        res.status(response.code).send(response);
-                        return;
+                        if (element.order_id) {
+                            response.code = 400
+                            response.message = "Field orders.order_id is required in blibli if product type bopis"
+                            res.status(response.code).send(response);
+                            return;
+                        }
+
+                        if (response.code == 200) {
+                            hitAPI = await apiBlibli.bopisPickup(element.order_id,element.sku_id);
+                            if (hitAPI.code != 200) {
+                                res.status(hitAPI.code).send(hitAPI);
+                                return;
+                            } else {
+                                response.code = 200;
+                                response.message = "Your request has been processed successfully"
+                                response.marketplace = "blibli"
+                                res.status(response.code).send(response);
+                                return;
+                            }
+                        }
                     } else if (element.product_type == "partial") {
-                        response.code = 400
-                        response.message = "Field product_type is required in blibli"
-                        res.status(response.code).send(response);
-                        return;
+                        if (element.order_id) {
+                            response.code = 400
+                            response.message = "Field orders.order_id is required in blibli if product type partial"
+                            res.status(response.code).send(response);
+                            return;
+                        }else  if (element.quantity) {
+                            response.code = 400
+                            response.message = "Field orders.quantity is required in blibli if product type partial"
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                        if (response.code == 200) {
+                            hitAPI = await apiBlibli.partialPickup(element.reason,element.order_id,element.quantity,element.invoice);
+                            if (hitAPI.code != 200) {
+                                res.status(hitAPI.code).send(hitAPI);
+                                return;
+                            } else {
+                                response.code = 200;
+                                response.message = "Your request has been processed successfully"
+                                response.marketplace = "blibli"
+                                res.status(response.code).send(response);
+                                return;
+                            }
+                        }
                     } else {
                         response.code = 400
                         response.message = "product_type not support in blibli"

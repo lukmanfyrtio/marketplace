@@ -440,6 +440,28 @@ function regularPickup(packageid, storeCode,username,awbNo) {
     return hitApi(method = "post", path, param, body)
 }
 
+function bopisPickup(orderItemId, itemSkuCode) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/fulfillBopis`;
+    let param = {};
+    let body = {};
+    if (orderItemId) body.orderItemId = orderItemId
+    if (itemSkuCode) body.itemSkuCode = itemSkuCode
+
+    return hitApi(method = "post", path, param, body)
+}
+
+function partialPickup(reason, orderNo,completeQuantity,orderItemNo) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/partialFulfill`;
+    let param = {};
+    let body = {};
+    if (orderItemNo) body.orderItemNo = orderItemNo
+    if (completeQuantity) body.completeQuantity = completeQuantity
+    if (reason) body.reason = reason
+    if (orderNo) body.orderNo = orderNo
+
+    return hitApi(method = "post", path, param, body)
+}
+
 function bigProductPickup(packageid, storeCode,username,deliveryStartDate,deliveryEndDate,courierName,courierType,settlementCode) {
     let path = `/proxy/seller/v1/orders/shipping-by-seller/${packageid}/ready-to-ship`;
     let param = {};
@@ -485,6 +507,6 @@ function getUUID() {
 }
 
 
-module.exports = {regularPickup,bigProductPickup,getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState,getAllReturns,getSingleReturn};
+module.exports = {partialPickup,bopisPickup,regularPickup,bigProductPickup,getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState,getAllReturns,getSingleReturn};
 
 
