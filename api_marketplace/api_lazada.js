@@ -393,7 +393,7 @@ function acceptRejectReturn(action,reverse_order_id,reverse_order_item_ids,reaso
 
 
 function getReviewProduct(item_id,current,page_size,order_id,start_time,end_time,status_filter,content_filter) {
-    let path = '/order/reverse/return/detail/list';
+    let path = '/review/seller/list';
     let param = getCommonParam();
 
     if (item_id) param.item_id = item_id;
@@ -410,7 +410,7 @@ function getReviewProduct(item_id,current,page_size,order_id,start_time,end_time
 
 
 function sellerPostReview(id,content) {
-    let path = '/order/reverse/return/detail/list';
+    let path = '/review/seller/reply/add';
     let param = getCommonParam();
 
     if (id) param.id = id;

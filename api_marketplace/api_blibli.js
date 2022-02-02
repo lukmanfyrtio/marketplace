@@ -485,6 +485,6 @@ function getUUID() {
 }
 
 
-module.exports = {getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState,getAllReturns,getSingleReturn};
+module.exports = {regularPickup,bigProductPickup,getAttribute,getCreationStatus,getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion,getCategory, getReply, postReply, getAllSettlements, getSingleSettlement,updateProduct,createProductV3,acceptOrder ,updateState,getAllReturns,getSingleReturn};
 
 

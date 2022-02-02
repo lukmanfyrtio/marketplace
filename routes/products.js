@@ -17,8 +17,10 @@ function isFloat(n) {
 
 function isValidDate(date) {
     return moment(date, 'YYYY-MM-DD', true).isValid();
-  }
-
+}
+function unixTms(date) {
+    return Math.floor(new Date(date).getTime() / 1000.0)
+}
 //create product
 router.post('/product/create', async function (req, res) {
     const search = req.query;
@@ -443,12 +445,12 @@ router.post('/product/create', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let arrayImage=[];
+            let arrayImage = [];
             images.forEach(element => {
                 arrayImage.push(element.url)
             });
-            let imageReq ={
-                image_id_list:arrayImage
+            let imageReq = {
+                image_id_list: arrayImage
             };
             let original_price = Number(price)
             let item_name = product_name
@@ -501,15 +503,15 @@ router.post('/product/create', async function (req, res) {
 
                 let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
                 let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
-                let hitAPI=await apiShoppe.createProduct(shop_id, price , description,weight,product_name,statusShopee,dimension
-                    ,stock ,logistic_info ,null,category_id ,imageReq ,preorder,sku,kondisiShopee,wholesales,url_video,brand,Number(item_dangerous)==1?1:0
-                    ,null,null)
+                let hitAPI = await apiShoppe.createProduct(shop_id, price, description, weight, product_name, statusShopee, dimension
+                    , stock, logistic_info, null, category_id, imageReq, preorder, sku, kondisiShopee, wholesales, url_video, brand, Number(item_dangerous) == 1 ? 1 : 0
+                    , null, null)
                 res.status(hitAPI.code).send(hitAPI);
                 return;
             }
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.createProductV3(shop_id, "username", attributes, brand, category_id, description, dimension, images, logistics, product_name, brand, pickup_point_code
-           , null,preorder, attributes, product_type, url_video)
+                , null, preorder, attributes, product_type, url_video)
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -518,24 +520,24 @@ router.post('/product/create', async function (req, res) {
             console.log("is weight");
             if (brand === null || brand === undefined) {
                 response.message = "Field brand in body is required,";
-            }else if(height === null || height === undefined){
+            } else if (height === null || height === undefined) {
                 response.message = "Field height in body is required,";
-            }else if(length === null || length === undefined){
+            } else if (length === null || length === undefined) {
                 response.message = "Field length in body is required,";
-            }else if(width === null || width === undefined){
+            } else if (width === null || width === undefined) {
                 response.message = "Field width in body is required,";
-            }else if(height === null || height === undefined){
+            } else if (height === null || height === undefined) {
                 response.message = "Field height in body is required,";
-            }else if(weight === null || weight === undefined){
+            } else if (weight === null || weight === undefined) {
                 response.message = "Field weight in body is required,";
-            }else{
-                let arrayImage ="";
+            } else {
+                let arrayImage = "";
                 images.forEach(element => {
-                    arrayImage+= `<Image>${element.url}</Image>`
+                    arrayImage += `<Image>${element.url}</Image>`
                 });
-                let hitAPI=await apiLazada.createProduct(
-                    category_id,arrayImage,product_name,description,brand,"","",url_video,"",sku,"","",stock
-    ,price,length,height,weight,width,"",arrayImage
+                let hitAPI = await apiLazada.createProduct(
+                    category_id, arrayImage, product_name, description, brand, "", "", url_video, "", sku, "", "", stock
+                    , price, length, height, weight, width, "", arrayImage
                 )
                 res.status(hitAPI.code).send(hitAPI);
                 return;
@@ -977,12 +979,12 @@ router.post('/product/update', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let arrayImage=[];
+            let arrayImage = [];
             images.forEach(element => {
                 arrayImage.push(element.url)
             });
-            let imageReq ={
-                image_id_list:arrayImage
+            let imageReq = {
+                image_id_list: arrayImage
             };
             let original_price = Number(price)
             let item_name = product_name
@@ -1035,29 +1037,29 @@ router.post('/product/update', async function (req, res) {
 
                 let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
                 let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
-            let hitAPI = await apiShoppe.updateProduct(shop_id,product_id,description,weight,product_name,item_status,dimension,logistics,attributes,category_id,array_images,preorder
-                ,sku,statusShopee,url_video,brand,item_dangerous,null,null)
-            res.status(hitAPI.code).send(hitAPI);
-            return;
+                let hitAPI = await apiShoppe.updateProduct(shop_id, product_id, description, weight, product_name, item_status, dimension, logistics, attributes, category_id, array_images, preorder
+                    , sku, statusShopee, url_video, brand, item_dangerous, null, null)
+                res.status(hitAPI.code).send(hitAPI);
+                return;
             }
         } else if (marketplace == "blibli") {
-            let items=[
+            let items = [
                 {
-                  "height": height,
-                  "itemSku": sku,
-                  "length": length,
-                  "merchantSku": sku,
-                  "pickupPointCode": pickup_point_code,
-                  "viewConfigs": [
-                    {
-                      "buyable": true,
-                      "channelId": "DEFAULT"
-                    }
-                  ],
-                  "weight": width,
-                  "width": width
+                    "height": height,
+                    "itemSku": sku,
+                    "length": length,
+                    "merchantSku": sku,
+                    "pickupPointCode": pickup_point_code,
+                    "viewConfigs": [
+                        {
+                            "buyable": true,
+                            "channelId": "DEFAULT"
+                        }
+                    ],
+                    "weight": width,
+                    "width": width
                 }
-              ]
+            ]
 
 
             let hitAPI = await apiBlibli.updateProduct(shop_id, attributes, description, items, product_name, sku, description, 1, url_video)
@@ -1067,14 +1069,14 @@ router.post('/product/update', async function (req, res) {
             if (sku_id === null || sku_id === undefined) {
                 response.code = 400
                 response.message = "Field sku_id in body is required in lazada marketplace,";
-            }else{
-                let arrayImage ="";
+            } else {
+                let arrayImage = "";
                 images.forEach(element => {
-                    arrayImage+= `<Image>${element.url}</Image>`
+                    arrayImage += `<Image>${element.url}</Image>`
                 });
-            let hitAPI = await apiLazada.updateProduct(product_id,product_name,description,sku_id,sku,stock,price,length,height,weight,width,arrayImage,null)
-            res.status(hitAPI.code).send(hitAPI);
-            return;
+                let hitAPI = await apiLazada.updateProduct(product_id, product_name, description, sku_id, sku, stock, price, length, height, weight, width, arrayImage, null)
+                res.status(hitAPI.code).send(hitAPI);
+                return;
             }
             res.status(response.code).send(response);
             return;
@@ -1125,39 +1127,39 @@ router.get('/products', async function (req, res) {
 
 //getAllProduct
 router.get('/products_', async function (req, res) {
-  const search = req.query
-  const shop_id = search.shop_id
-  let marketplace = search.marketplace
-  const page = search.page
-  const limit = search.limit
+    const search = req.query
+    const shop_id = search.shop_id
+    let marketplace = search.marketplace
+    const page = search.page
+    const limit = search.limit
 
-  if (shop_id === null || shop_id === undefined) {
-    response.code = 400
-    response.message = "Parameter shop_id is required"
-  } else if (!req.envStore.marketplace) {
-    response.code = 400
-    response.message = "shop_id is not found"
-  } else {
-    marketplace = req.envStore.marketplace
-    if (marketplace == "tokopedia") {
-      let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', req.envStore) // env
-      res.status(hitAPI.code).send(hitAPI)
-      return
-    } else if (marketplace == "shopee") {
-      let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit)
-      res.status(hitAPI.code).send(hitAPI)
-      return
-    } else if (marketplace == "blibli") {
-      let hitAPI = await apiBlibli.getProducts(shop_id, "username")
-      res.status(hitAPI.code).send(hitAPI)
-      return
-    } else if (marketplace == "lazada") {
-      let hitAPI = await apiLazada.getProducts(page, limit)
-      res.status(hitAPI.code).send(hitAPI)
-      return
+    if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    } else if (!req.envStore.marketplace) {
+        response.code = 400
+        response.message = "shop_id is not found"
+    } else {
+        marketplace = req.envStore.marketplace
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', req.envStore) // env
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit)
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getProducts(shop_id, "username")
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.getProducts(page, limit)
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        }
     }
-  }
-  res.status(response.code).send(response)
+    res.status(response.code).send(response)
 })
 
 //getSingleProduct
@@ -1377,7 +1379,7 @@ router.post('/product/update_state', async function (req, res) {
     } else if (state !== "active" && state !== "inactive") {
         response.code = 400
         response.message = "Parameter state is only available for  active or inactive"
-    } else if (marketplace=="lazada" &&state !== "inactive") {
+    } else if (marketplace == "lazada" && state !== "inactive") {
         response.code = 400
         response.message = "Parameter state on lazada is only available for inactive"
     } else if (product_id === null || product_id === undefined) {
@@ -1777,7 +1779,7 @@ router.get('/product/attribute', async function (req, res) {
 router.post('/request-pickup', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
-    const body=req.body;
+    const body = req.body;
     const marketplace = search.marketplace;
 
     const orders = body.orders;
@@ -1795,52 +1797,52 @@ router.post('/request-pickup', async function (req, res) {
     } else if (orders === null || orders === undefined) {
         response.code = 400
         response.message = "Filed orders in body is required "
-    } else if (orders.length>50) {
+    } else if (orders.length > 50) {
         response.code = 400
         response.message = "Max order is 50"
     } else {
-        let  hitAPI={
+        let hitAPI = {
 
         };
         if (marketplace == "tokopedia") {
             response.code = 200;
             response.message = "Your request has been processed successfully"
             response.marketplace = "tokopedia"
-             if(orders.length==0){
+            if (orders.length == 0) {
                 response.code = 400
                 response.message = "Field orders can`t empty"
                 res.status(response.code).send(response);
                 return;
-            }else{
-            orders.forEach(async element => {
-                if(element.order_id==null||element.order_id==undefined){
-                    response.code = 400
-                    response.message = "Field order_id on order list object is required"
-                    res.status(response.code).send(response);
-                    return;
-                }else{
-                hitAPI=await apiTokped.requestPickup(element.order_id,shop_id);
-                if(hitAPI.code!=200){
-                    res.status(hitAPI.code).send(hitAPI);
-                    return;
-                }else{
-                res.status(response.code).send(response);
-                return;
-                }
+            } else {
+                orders.forEach(async element => {
+                    if (element.order_id == null || element.order_id == undefined) {
+                        response.code = 400
+                        response.message = "Field order_id on order list object is required"
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        hitAPI = await apiTokped.requestPickup(element.order_id, shop_id);
+                        if (hitAPI.code != 200) {
+                            res.status(hitAPI.code).send(hitAPI);
+                            return;
+                        } else {
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                    }
+                });
             }
-            });
-        }
-        return;
+            return;
         } else if (marketplace == "shopee") {
             response.code = 200;
             response.message = "Your request has been processed successfully"
             response.marketplace = "shopee"
-             if(orders.length==0){
+            if (orders.length == 0) {
                 response.code = 400
                 response.message = "Field orders can`t empty"
                 res.status(response.code).send(response);
                 return;
-            }else{
+            } else {
                 let address_id;
                 let pickup_time_id;
                 let branch_id;
@@ -1849,180 +1851,231 @@ router.post('/request-pickup', async function (req, res) {
                 let slug;
                 let non_integrated_pkgn;
                 let package_number;
-                let notError=true;
-            orders.forEach(async element => {
-                if(element.order_id==null||element.order_id==undefined){
-                    response.code = 400
-                    response.message = "Field order_id on order list object is required"
-                    res.status(response.code).send(response);
-                    return;
-                }else{
-                    hitAPI=await apiShoppe.getShipParameter(shop_id,element.order_id);
-                    console.log(hitAPI.code);
-                    if(hitAPI.code!==200){
-                        console.log(hitAPI);
-                        notError=false;
-                        res.status(hitAPI.code).send(hitAPI);
+                let notError = true;
+                orders.forEach(async element => {
+                    if (element.order_id == null || element.order_id == undefined) {
+                        response.code = 400
+                        response.message = "Field order_id on order list object is required"
+                        res.status(response.code).send(response);
                         return;
-                    }else{
-                    if(response.info_needed.pickup){
-                        address_id=response.pickup.address_list[0].address_id
-                        pickup_time_id=response.pickup.address_list[0].time_slot_list[0].pickup_time_id
-                    }else if(response.info_needed.dropoff){
-                        branch_id=response.dropoff.branch_list[0].branch_id
-                        if(response.info_needed.dropoff.includes("sender_real_name"))sender_real_name=response.info_needed.dropoff.sender_real_name;
-                        if(response.info_needed.dropoff.includes("tracking_no"))sender_real_name=response.info_needed.dropoff.tracking_no;
-                    }else{
-                        if(response.info_needed.non_integrated[0]=="tracking_no"){
-                            if(element.no_awb==null||element.no_awb==undefined){
-                                response.code = 400
-                                response.message = "Field no_awb on order list object is required"
-                                res.status(response.code).send(response);
-                                return;
-                            }else{
-                                non_integrated_pkgn=element.no_awb
+                    } else {
+                        hitAPI = await apiShoppe.getShipParameter(shop_id, element.order_id);
+                        console.log(hitAPI.code);
+                        if (hitAPI.code !== 200) {
+                            console.log(hitAPI);
+                            notError = false;
+                            res.status(hitAPI.code).send(hitAPI);
+                            return;
+                        } else {
+                            if (response.info_needed.pickup) {
+                                address_id = response.pickup.address_list[0].address_id
+                                pickup_time_id = response.pickup.address_list[0].time_slot_list[0].pickup_time_id
+                            } else if (response.info_needed.dropoff) {
+                                branch_id = response.dropoff.branch_list[0].branch_id
+                                if (response.info_needed.dropoff.includes("sender_real_name")) sender_real_name = response.info_needed.dropoff.sender_real_name;
+                                if (response.info_needed.dropoff.includes("tracking_no")) sender_real_name = response.info_needed.dropoff.tracking_no;
+                            } else {
+                                if (response.info_needed.non_integrated[0] == "tracking_no") {
+                                    if (element.no_awb == null || element.no_awb == undefined) {
+                                        response.code = 400
+                                        response.message = "Field no_awb on order list object is required"
+                                        res.status(response.code).send(response);
+                                        return;
+                                    } else {
+                                        non_integrated_pkgn = element.no_awb
+                                    }
+                                }
+                            }
+
+                            if (element.package_id) {
+                                package_number = element.package_id;
+                            }
+
+                            if (notError) {
+                                hitAPI = await apiShoppe.shipOrder(shop_id, element.order_id, package_number, address_id, pickup_time_id, tracking_number, branch_id, sender_real_name, tracking_number, slug, non_integrated_pkgn)
+                                if (hitAPI.data.error == "") {
+                                    res.status(response.code).send(response);
+                                    return;
+                                } else {
+                                    res.status(hitAPI.code).send(hitAPI);
+                                    return;
+                                }
                             }
                         }
                     }
-
-                    if(element.package_id){
-                        package_number=element.package_id;
-                    }
-
-                    if(notError){
-                        hitAPI=await apiShoppe.shipOrder(shop_id, element.order_id, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn)
-                        if(hitAPI.data.error==""){
-                            res.status(response.code).send(response);
-                            return;
-                        }else{
-                            res.status(hitAPI.code).send(hitAPI);
-                            return;
-                        }
-                    }
-                }
-            }
-            })
+                })
             }
         } else if (marketplace == "blibli") {
             response.code = 200;
-            response.message = "Your request has been processed successfully"
-            response.marketplace = "blibli"
-             if(orders.length==0){
+            if (orders.length == 0) {
                 response.code = 400
                 response.message = "Field orders can`t empty"
                 res.status(response.code).send(response);
                 return;
-            }else{
-            orders.forEach(async element => {
-                if(element.product_type){
-                    response.code = 400
-                    response.message = "Field product_type is required in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.product_type=="regular"){
-                    if(element.package_id){
+            } else {
+                orders.forEach(async element => {
+                    if (!element.product_type) {
                         response.code = 400
-                        response.message = "Field order.regular is required in blibli"
+                        response.message = "Field product_type is required in blibli"
                         res.status(response.code).send(response);
                         return;
-                    }else{
-                        if(element.delivery_type){
-                            let enumDelivery=['pickup', 'dropoff']
-                            if(enumDelivery.includes(element.delivery_type)){
-                                if(element.delivery_type=="dropoff"){
-                                    if(!element.no_awb){
-                                        response.code = 400
-                                        response.message = "Field order.no_awb mandatory if delivery_type value is dropoff"
-                                        res.status(response.code).send(response);
-                                        return;
+                    } else if (element.product_type == "regular") {
+                        if (element.package_id) {
+                            response.code = 400
+                            response.message = "Field orders.package_id is required in blibli"
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            if (element.delivery_type) {
+                                let enumDelivery = ['pickup', 'dropoff']
+                                if (enumDelivery.includes(element.delivery_type)) {
+                                    if (element.delivery_type == "dropoff") {
+                                        if (!element.no_awb) {
+                                            response.code = 400
+                                            response.message = "Field orders.no_awb mandatory if delivery_type value is dropoff"
+                                            res.status(response.code).send(response);
+                                            return;
+                                        }
                                     }
+                                } else {
+                                    response.code = 400
+                                    response.message = "possible order.delivery_type for blibli is pickup or dropoff,"
+                                    res.status(response.code).send(response);
+                                    return;
                                 }
-                            }else{
-                                response.code = 400
-                                response.message = "possible order.delivery_type for blibli is pickup or dropoff,"
+                            }
+                        }
+                        if (response.code == 200) {
+                            hitAPI = await apiBlibli.regularPickup(element.package_id, shop_id, "username", element.no_awb);
+                            if (hitAPI.code != 200) {
+                                res.status(hitAPI.code).send(hitAPI);
+                                return;
+                            } else {
+                                response.code = 200;
+                                response.message = "Your request has been processed successfully"
+                                response.marketplace = "blibli"
                                 res.status(response.code).send(response);
                                 return;
                             }
                         }
+                    } else if (element.product_type == "bigProduct") {
+                        if (element.package_id) {
+                            response.code = 400
+                            response.message = "Field orders.package_id is required in blibli"
+                            res.status(response.code).send(response);
+                            return;
+                        }else if (element.delivery_date_start) {
+                            response.code = 400
+                            response.message = "Field orders.delivery_date_start is required in blibli if product type bigProduct"
+                            res.status(response.code).send(response);
+                            return;
+                        }else if (element.delivery_date_end) {
+                            response.code = 400
+                            response.message = "Field orders.delivery_date_end is required in blibli if product type bigProduct"
+                            res.status(response.code).send(response);
+                            return;
+                        }else if (element.settlement_code) {
+                            response.code = 400
+                            response.message = "Field orders.settlement_code is required in blibli if product type bigProduct"
+                            res.status(response.code).send(response);
+                            return;
+                        }else if (element.courier_name) {
+                            response.code = 400
+                            response.message = "Field orders.courier_name is required in blibli if product type bigProduct"
+                            res.status(response.code).send(response);
+                            return;
+                        }else if (element.courier_type) {
+                            response.code = 400
+                            response.message = "Field orders.courier_type is required in blibli if product type bigProduct"
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                        if (response.code == 200) {
+                            hitAPI = await apiBlibli.bigProductPickup(element.package_id,shop_id,"username",element.delivery_date_start,element.delivery_date_end,element.courier_name,element.courier_type,element.settlement_code)
+                            if (hitAPI.code != 200) {
+                                res.status(hitAPI.code).send(hitAPI);
+                                return;
+                            } else {
+                                response.code = 200;
+                                response.message = "Your request has been processed successfully"
+                                response.marketplace = "blibli"
+                                res.status(response.code).send(response);
+                                return;
+                            }
+                        }
+                    } else if (element.product_type == "bopis") {
+                        response.code = 400
+                        response.message = "Field product_type is required in blibli"
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.product_type == "partial") {
+                        response.code = 400
+                        response.message = "Field product_type is required in blibli"
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        response.code = 400
+                        response.message = "product_type not support in blibli"
+                        res.status(response.code).send(response);
+                        return;
                     }
-                    response.code = 400
-                    response.message = "Field product_type is required in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.product_type=="bigProduct"){
-                    response.code = 400
-                    response.message = "Field product_type is required in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.product_type=="bopis"){
-                    response.code = 400
-                    response.message = "Field product_type is required in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.product_type=="partial"){
-                    response.code = 400
-                    response.message = "Field product_type is required in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }else{
-                    response.code = 400
-                    response.message = "product_type not support in blibli"
-                    res.status(response.code).send(response);
-                    return;
-                }
-            })
+                })
             }
         } else if (marketplace == "lazada") {
             response.code = 200;
             response.message = "Your request has been processed successfully"
             response.marketplace = "lazada"
-             if(orders.length==0){
+            if (orders.length == 0) {
                 response.code = 400
                 response.message = "Field orders can`t empty"
                 res.status(response.code).send(response);
                 return;
-            }else{
-            orders.forEach(async element => {
-                if(element.order_id==null||element.order_id==undefined){
-                    response.code = 400
-                    response.message = "Field order_id on order list object is required"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.delivery_type==null||element.delivery_type==undefined){
-                    response.code = 400
-                    response.message = "Field delivery_type on order list object is required"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.delivery_type!="dropship"){
-                    response.code = 400
-                    response.message = "Field delivery_type on lazada only dropship"
-                    res.status(response.code).send(response);
-                    return;
-                }else if(element.shipping_provider==null||element.shipping_provider==undefined){
-                    response.code = 400
-                    response.message = "Field shipping_provider on order list object is required"
-                    res.status(response.code).send(response);
-                    return;
-                }else{
-                hitAPI=await apiLazada.acceptOrder(`[${element.order_id}]`,element.shipping_provider,element.delivery_type)
-                if(hitAPI.codeStatus!='0'){
-                    res.status(hitAPI.code).send(hitAPI);
-                    return;
-                }else{
-                hitAPI=await apiLazada.orderRts(`[${element.order_id}]`,element.shipping_provider,element.delivery_type,hitAPI.data.order_items[0].tracking_number);
-                if(hitAPI.codeStatus!='0'){
-                    res.status(hitAPI.code).send(hitAPI);
-                    return;
-                }
-                res.status(response.code).send(response);
-                return;
-                }
+            } else {
+                orders.forEach(async element => {
+                    if (element.order_id == null || element.order_id == undefined) {
+                        response.code = 400
+                        response.message = "Field order_id on order list object is required"
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.delivery_type == null || element.delivery_type == undefined) {
+                        response.code = 400
+                        response.message = "Field delivery_type on order list object is required"
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.delivery_type != "dropship") {
+                        response.code = 400
+                        response.message = "Field delivery_type on lazada only dropship"
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.shipping_provider == null || element.shipping_provider == undefined) {
+                        response.code = 400
+                        response.message = "Field shipping_provider on order list object is required"
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        hitAPI = await apiLazada.acceptOrder(`[${element.order_id}]`, element.shipping_provider, element.delivery_type)
+                        if (hitAPI.codeStatus != '0') {
+                            res.status(hitAPI.code).send(hitAPI);
+                            return;
+                        } else {
+                            hitAPI = await apiLazada.orderRts(`[${element.order_id}]`, element.shipping_provider, element.delivery_type, hitAPI.data.order_items[0].tracking_number);
+                            if (hitAPI.codeStatus != '0') {
+                                res.status(hitAPI.code).send(hitAPI);
+                                return;
+                            }
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                    }
+                });
             }
-            });
-        }
-        return;
+            return;
         }
     }
+    if(response.message){
+        res.status(response.code).send(response);
+    }
+    return;
 });
 
 
@@ -2076,7 +2129,7 @@ router.get('/product/reviews', async function (req, res) {
 });
 
 //get review
-router.get('/product/reviews/reply', async function (req, res) {
+router.post('/product/review/reply', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
@@ -2100,7 +2153,7 @@ router.get('/product/reviews/reply', async function (req, res) {
     } else if (message === null || message === undefined) {
         response.code = 400
         response.message = "Parameter message is required"
-    }else {
+    } else {
         if (marketplace == "tokopedia") {
             response.code = 400
             response.message = "still not avalable for tokopedia"
@@ -2120,7 +2173,7 @@ router.get('/product/reviews/reply', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.sellerPostReview(review_id,message)
+            let hitAPI = await apiLazada.sellerPostReview(review_id, message)
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -2136,6 +2189,8 @@ router.get('/product/discussion/list', async function (req, res) {
     const page = search.page;
     const limit = search.limit;
     const marketplace = search.marketplace;
+    const start_time = search.start_time;
+    const end_time = search.end_time;
 
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
@@ -2146,13 +2201,16 @@ router.get('/product/discussion/list', async function (req, res) {
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
+    } else if (productId === null || productId === undefined) {
+        response.code = 400
+        response.message = "Parameter productId is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProductDiscussion(shop_id,productId,page,limit)
+            let hitAPI = await apiTokped.getProductDiscussion(shop_id, productId, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id,productId,null,page,limit)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, productId, null, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2201,7 +2259,7 @@ router.get('/product/discussion', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id,null,comment_id,page,limit)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, null, comment_id, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2258,7 +2316,7 @@ router.post('/product/discussion/reply', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.postProductDiscussion(shop_id,comment_id,message)
+            let hitAPI = await apiShoppe.postProductDiscussion(shop_id, comment_id, message)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2298,9 +2356,9 @@ router.get('/shop_info', async function (req, res) {
         console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
-    }else {
+    } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getShopInfo(shop_id,page,limit);
+            let hitAPI = await apiTokped.getShopInfo(shop_id, page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2359,60 +2417,60 @@ router.post('/shop_info/update', async function (req, res) {
         console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
-    }else {
+    } else {
         if (marketplace == "tokopedia") {
-            if(action === null || action === undefined){
+            if (action === null || action === undefined) {
                 response.code = 400
                 response.message = "Field action on body is required on tokopedia"
-            }else if(action !== "open" && action !== "close"){
+            } else if (action !== "open" && action !== "close") {
                 response.code = 400
                 response.message = "Field action on body action is only available open or close"
-            }else{
-                if(action==="close"){
-                    if(start_date === null || start_date === undefined){
+            } else {
+                if (action === "close") {
+                    if (start_date === null || start_date === undefined) {
                         response.code = 400
                         response.message = "Field start_date on body is required if action is close"
-                    }else if(!isValidDate(start_date)){
+                    } else if (!isValidDate(start_date)) {
                         response.code = 400
                         response.message = "Field start_date on body  format is YYYY-MM-DD"
-                    }else if(end_date === null || end_date === undefined){
+                    } else if (end_date === null || end_date === undefined) {
                         response.code = 400
                         response.message = "Field end_date on body is required if action is close"
-                    }else if(!isValidDate(end_date)){
+                    } else if (!isValidDate(end_date)) {
                         response.code = 400
                         response.message = "Field end_date on body format is YYYY-MM-DD"
-                    }else if(close_now === null || close_now === undefined){
+                    } else if (close_now === null || close_now === undefined) {
                         response.code = 400
                         response.message = "Field close_now on body is required if action is close"
-                    }else if(!typeof close_now == "boolean"){
+                    } else if (!typeof close_now == "boolean") {
                         response.code = 400
                         response.message = "Field close_now on body should be boolean"
-                    }if(close_note === null || close_note === undefined){
+                    } if (close_note === null || close_note === undefined) {
                         response.code = 400
                         response.message = "Field close_note on body is required if action is close"
-                    }else{
-                        let hitAPI = await apiTokped.updateShopInfo(shop_id,action,moment(start_date).format("YYYYMMDD"),moment(end_date).format("YYYYMMDD"),close_note,close_now);
+                    } else {
+                        let hitAPI = await apiTokped.updateShopInfo(shop_id, action, moment(start_date).format("YYYYMMDD"), moment(end_date).format("YYYYMMDD"), close_note, close_now);
                         res.send(hitAPI);
                         return;
                     }
-                }else{
-                    let hitAPI = await apiTokped.updateShopInfo(shop_id,action,start_date,end_date,close_note,close_now);
+                } else {
+                    let hitAPI = await apiTokped.updateShopInfo(shop_id, action, start_date, end_date, close_note, close_now);
                     res.send(hitAPI);
                     return;
                 }
             }
         } else if (marketplace == "shopee") {
 
-            if(offer){
-                if(offer!==true||offer!==false){
+            if (offer) {
+                if (offer !== true || offer !== false) {
                     response.code = 400
                     response.message = "Parameter offer is only available true or false"
                     res.status(response.code).send(response);
                     return;
                 }
             }
-            if(display_pickup_address){
-                if(display_pickup_address!==true||display_pickup_address!==false){
+            if (display_pickup_address) {
+                if (display_pickup_address !== true || display_pickup_address !== false) {
                     response.code = 400
                     response.message = "Parameter display_pickup_address is only available true or false"
                     res.status(response.code).send(response);
@@ -2420,7 +2478,7 @@ router.post('/shop_info/update', async function (req, res) {
                 }
             }
 
-            let arrayImage=[];
+            let arrayImage = [];
             if (images) {
                 images.forEach(element => {
                     if (element.url === null && element.url === undefined) {
@@ -2434,7 +2492,7 @@ router.post('/shop_info/update', async function (req, res) {
                 });
             }
 
-            let arrayVideo=[];
+            let arrayVideo = [];
             if (videos) {
                 videos.forEach(element => {
                     if (element.url === null && element.url === undefined) {
@@ -2447,7 +2505,7 @@ router.post('/shop_info/update', async function (req, res) {
                     }
                 });
             }
-            let hitAPI = await apiShoppe.updateShopInfo(shop_id,shop_description,display_pickup_address,offer?0:1,arrayVideo,arrayImage,shop_name)
+            let hitAPI = await apiShoppe.updateShopInfo(shop_id, shop_description, display_pickup_address, offer ? 0 : 1, arrayVideo, arrayImage, shop_name)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
