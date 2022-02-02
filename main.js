@@ -7,27 +7,13 @@ const express = require('express')
 const db = require('mariadb')
 const app = express()
 
-const port = 80 // dev
-// const port = 7222 // local
-const cdb = {
-  host: 'mpdbv1', // dev
-  port: '3306', // dev
-  // host: 'localhost', // local
-  // port: '8888', // local
-  database: 'mpapi',
-  user:'mpdb',
-  password: 'Aku4@kua',
-  connectionLimit: 10
-  // connectTimeout: 60000,
-  // acquireTimeout: 60000,
-  // allowPublicKeyRetrieval: true
-}
+const {conf, env} = require('./conf') // configuration and environment
 
 function jsonS(d) {return JSON.stringify(d)}
 function jsonP(d) {return d ? JSON.parse(d) : {}}
 function jsonPs(d) {return jsonP(jsonS(d))}
 
-const pl = db.createPool(cdb)
+const pl = db.createPool(conf.db)
 async function eq(q) {
   let cn, rw
   try {
@@ -75,7 +61,7 @@ app.use(function(req, res, next){
 
 app.use(express.json())
 app.use('/', orderRoutes,productRoutes,settlementRoutes,chatRoutes,returnRoutes)
-app.listen(port, () => {
+app.listen(conf.port, () => {
   getEnvStores()
-  // console.log(`Marketplace gateway started on port ${port}`)
+  // console.log(`Marketplace gateway started on port ${conf.port}`)
 })
