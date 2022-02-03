@@ -33,6 +33,17 @@ pass : it.VCI.2020
 
 2. Shopee https://open.shopee.com/documents?version=2
 
+	Akun Seller 
+	https://seller.test-stable.shopee.co.id/account/signin?next=%2F
+	username : SANDBOX.7c328b48afb9016922f8
+	password : 2ce147a7e1526ec7
+
+
+	Akun Buyer
+	https://test-stable.shopee.co.id/shop/38923
+	Username : SANDBOX_BUYER.d9eb67b03d07ee
+	Password : 307f19f185dbbcf7
+
 3. Lazada https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193487.0.0.3ac413fe41w3Fp&nodeId=27493&docId=118729#?nodeId=29586&docId=120248<br>
 App Key: 106390<br>
 App Secret: 35D7YglUofxHQRZ85xzLd7dopVjo4XBw
