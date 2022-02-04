@@ -75,6 +75,7 @@ router.get('/return', async function (req, res) {
     const body = req.body;
     const param = req.query;
 
+    const marketplace = param.marketplace;
     const shop_id = param.shop_id;
 
     const return_id = param.return_id;//only blibli
@@ -122,6 +123,7 @@ router.get('/return', async function (req, res) {
             return;
         }
     }
+    res.status(response.code).send(response);
 });
 
 router.post('/return/accept', async function (req, res) {
@@ -129,6 +131,7 @@ router.post('/return/accept', async function (req, res) {
     const param = req.query;
     const shop_id = param.shop_id;
     const return_id = param.return_id;
+    const marketplace = param.marketplace;
     const order_items = param.order_items;
     const reason = param.reason;
     const images = param.images;
@@ -168,12 +171,13 @@ router.post('/return/accept', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter action only available for agreeRefund or agreeReturn"
             }else{
-            let hitAPI = await apiLazada.acceptRejectReturn("agreeReturn",return_id,[],0,reason,images)
+            let hitAPI = await apiLazada.acceptRejectReturn("agreeReturn",return_id,'[]',0,reason,images)
             res.send(hitAPI);
             return;
             }
         }
     }
+    res.status(response.code).send(response);
 });
 
 
@@ -183,6 +187,8 @@ router.post('/return/reject', async function (req, res) {
     const body = req.body;
     const param = req.query;
 
+    const marketplace = param.marketplace;
+    const action = param.action;
     const shop_id = param.shop_id;
     const return_id = param.return_id;
     const reason_type = param.reason_type;
@@ -225,12 +231,13 @@ router.post('/return/reject', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter action only available for refuseRefund or refuseReturn"
             }else{
-            let hitAPI = await apiLazada.acceptRejectReturn(action,return_id,[],0,reason,images)
+            let hitAPI = await apiLazada.acceptRejectReturn(action,return_id,'[]',0,reason,images)
             res.send(hitAPI);
             return;
             }
         }
     }
+    res.status(response.code).send(response);
 });
 
 module.exports = router;

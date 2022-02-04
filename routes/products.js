@@ -1126,7 +1126,7 @@ router.get('/products', async function (req, res) {
 });
 
 //getAllProduct
-router.get('/products_', async function (req, res) {
+router.get('/products', async function (req, res) {
     const search = req.query
     const shop_id = search.shop_id
     let marketplace = search.marketplace

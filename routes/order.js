@@ -278,7 +278,7 @@ router.post('/process/order', async function (req, res) {
             response.message = "Field order_id is required "
             res.status(response.code).send(response)
             return;
-          } else if (element.cancel_reason) {
+          }else if (element.cancel_reason) {
             response.code = 400
             response.message = "Field cancel_reason is required ";
             res.status(response.code).send(response)
