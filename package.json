@@ -9,7 +9,7 @@
     "a": "ssh root@222.165.224.195 -t \"cd /home/docker; bash\"",
     "ad": "ssh root@222.165.224.195 -t \"cd /home/docker/dev; bash\"",
     "ap": "ssh root@222.165.224.195 -t \"cd /home/docker/prod; bash\"",
-    "dd": "scp -r api_marketplace routes main.js package.json root@222.165.224.195:/home/docker/dev/volume/marketplace/"
+    "dd": "scp -r api_marketplace routes conf.js main.js package.json root@222.165.224.195:/home/docker/dev/volume/marketplace/"
   },
   "repository": {
     "type": "git",

@@ -29,7 +29,7 @@ async function eq(q) {
 
 async function getEnvStores() {
   const rs = await eq(
-    `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, code_1, code_2, code_3, code_4, code_5, tipe from stores`
+    `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
   )
   if (rs && rs.text) console.log(rs)
   else {

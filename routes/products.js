@@ -1232,7 +1232,7 @@ router.post('/product/update_price', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Parameter product_id is required"
-    } else if (marketplace == "lazada" && sku_id === null || sku_id === undefined) {
+    } else if (marketplace == "lazada" && (sku_id === null || sku_id === undefined)) {
         response.code = 400
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
@@ -1282,7 +1282,7 @@ router.post('/product/update_stock', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Parameter product_id is required"
-    } else if (marketplace == "lazada" && sku_id === null || sku_id === undefined) {
+    } else if (marketplace == "lazada" && (sku_id === null || sku_id === undefined)) {
         response.code = 400
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
