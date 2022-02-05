@@ -1125,43 +1125,6 @@ router.get('/products', async function (req, res) {
     res.status(response.code).send(response);
 });
 
-//getAllProduct
-router.get('/products', async function (req, res) {
-    const search = req.query
-    const shop_id = search.shop_id
-    let marketplace = search.marketplace
-    const page = search.page
-    const limit = search.limit
-
-    if (shop_id === null || shop_id === undefined) {
-        response.code = 400
-        response.message = "Parameter shop_id is required"
-    } else if (!req.envStore.marketplace) {
-        response.code = 400
-        response.message = "shop_id is not found"
-    } else {
-        marketplace = req.envStore.marketplace
-        if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', req.envStore) // env
-            res.status(hitAPI.code).send(hitAPI)
-            return
-        } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit)
-            res.status(hitAPI.code).send(hitAPI)
-            return
-        } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getProducts(shop_id, "username")
-            res.status(hitAPI.code).send(hitAPI)
-            return
-        } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getProducts(page, limit)
-            res.status(hitAPI.code).send(hitAPI)
-            return
-        }
-    }
-    res.status(response.code).send(response)
-})
-
 //getSingleProduct
 router.get('/product', async function (req, res) {
     const search = req.query;
@@ -2561,7 +2524,41 @@ router.post('/shop_info/update', async function (req, res) {
     res.status(response.code).send(response)
 });
 
+//getAllProduct v2
+router.get('/products_', async function (req, res) {
+    const search = req.query
+    const shop_id = search.shop_id
+    let marketplace = search.marketplace
+    const page = search.page
+    const limit = search.limit
 
-
+    if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+    } else if (!req.envStore.marketplace) {
+        response.code = 400
+        response.message = "shop_id is not found"
+    } else {
+        marketplace = req.envStore.marketplace
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', req.envStore) // env
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit)
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getProducts(shop_id, "username")
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.getProducts(page, limit)
+            res.status(hitAPI.code).send(hitAPI)
+            return
+        }
+    }
+    res.status(response.code).send(response)
+})
 
 module.exports = router;
