@@ -46,7 +46,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
     let responseData = {};
     responseData.marketplace = "lazada"
     responseData.timestamp = new Date().getTime();
-    let token = '50000301e03rhbe1e09497dbremzyGoDRHajVuIl0HtxgwTyQQQvvgsfvXrkHi9'
+    let token = '50000301f37fbgdq5Lt1hJmtoWIwXBl5CxtjPRasMRZv4QfKF18edbb4fc5ZpM5'
     query.access_token = token;
     query.sign = sign(path, query)
     console.log(query.sign);
@@ -73,6 +73,40 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
             responseData.code = e.response.status;
             responseData.message = response.data.message;
             resolve(responseData);
+        });
+    });
+}
+
+
+function getRefreshToken(refreshtoken) {
+    let path_get_token = '/auth/token/refresh'
+    let param = getCommonParam();
+    param.refreshtoken = refreshtoken;
+    param.sign = sign(path_get_token, param)
+
+    let header = {
+        'Content-Type': 'application/x-www-form-urlencodedcharset=utf-8'
+    }
+    return new Promise(function (resolve, reject) {
+        axios({
+            method: 'post',
+            url: uri + path_get_token,
+            params: param,
+            headers: header
+
+        }).then(function (response) {
+            console.log(response.config.url);
+            console.log(response.config.params);
+            console.log(response.config.data);
+            console.log(response.data);
+            if (response.data.access_token) {
+                resolve(response.data.access_token);
+            } else {
+                resolve("token");
+            }
+
+        }).catch((e) => {
+            resolve(e.response);
         });
     });
 }
@@ -251,11 +285,26 @@ function getAllSettlements(offset = 0, limit = 50, start_time, end_time) {
     return hitApi("get", path, param, {}, {})
 }
 
-function createProduct(category_id, productImages, product_name, short_description, brand, model, kid_years, videoId, delivery_option_sof, sellerSku, color_family, size, stock
-    , price, length, height, weight, width, content, skuImages) {
+function createProduct(category_id, productImages, product_name, short_description, brand,variant) {
     let path = '/product/create'
     let param = getCommonParam();
-    param.payload = `<Request><Product><PrimaryCategory>${category_id}</PrimaryCategory><SPUId/><AssociatedSku/><Images> ${productImages} </Images> <Attributes> <name>${product_name}</name> <short_description>${short_description}</short_description> <brand>${brand}</brand> ${model ? `<model>${model}</model>` : ""} ${kid_years ? `<kid_years>${kid_years}</kid_years>` : ""} ${videoId ? `<video>${videoId}</video>` : ""} ${delivery_option_sof ? `<delivery_option_sof>${delivery_option_sof}</delivery_option_sof>` : ""} <warranty_type>No Warranty</warranty_type> </Attributes> <Skus> <Sku> <SellerSku>${sellerSku}</SellerSku> ${color_family ? `<color_family>${color_family}</color_family>` : ""} ${size ? `<size>${size}</size>` : ""} <quantity>${stock}</quantity> <price>${price}</price> <package_length>${length}</package_length> <package_height>${height}</package_height> <package_weight>${weight}</package_weight> <package_width>${width}</package_width> <package_content>${content}</package_content> <Images> ${skuImages} </Images> </Sku> </Skus> </Product> </Request>`;
+    param.payload = `<Request>
+    <Product>
+    <PrimaryCategory>${category_id}</PrimaryCategory>
+    <SPUId/>
+    <AssociatedSku/>
+    <Images>${productImages}</Images> 
+    <Attributes> 
+    <name>${product_name}</name> 
+    <short_description>${short_description}</short_description> 
+    <brand>${brand}</brand>
+    <warranty_type>No Warranty</warranty_type> 
+    </Attributes> 
+    <Skus> 
+    ${variant}
+    </Skus> 
+    </Product> 
+    </Request>`;
 
     return hitApi("post", path, param, {}, {})
 }
