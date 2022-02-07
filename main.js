@@ -9,6 +9,8 @@ const app = express()
 
 const {conf, env} = require('./conf') // configuration and environment
 
+let response = {timestamp: new Date().getTime()}
+
 function jsonS(d) {return JSON.stringify(d)}
 function jsonP(d) {return d ? JSON.parse(d) : {}}
 function jsonPs(d) {return jsonP(jsonS(d))}
@@ -36,8 +38,8 @@ async function getEnvStores() {
     // process.env.mpstores = jsonS(rs)
     const mpstores = rs ? rs : []
     for (const mpstore of mpstores) {
-      process.env['mpstore' + mpstore.shop_id] = jsonS(mpstore)
-      // process.env['mpstore' + mpstore.shop_id + mpstore.marketplace] = jsonS(mpstore)
+      // process.env['mpstore' + mpstore.shop_id] = jsonS(mpstore)
+      process.env['mpstore' + mpstore.shop_id + mpstore.marketplace] = jsonS(mpstore)
     }
   }
   // console.log(process.env)
@@ -52,11 +54,15 @@ app.use(function(req, res, next){
   //     }) : []
   // )[0]
   req.envStore = Object.assign({},
-    jsonP(process.env['mpstore' + req.query.shop_id])
-    // jsonP(process.env['mpstore' + req.query.shop_id + req.query.marketplace])
+    // jsonP(process.env['mpstore' + req.query.shop_id])
+    jsonP(process.env['mpstore' + req.query.shop_id + req.query.marketplace])
   )
   // console.log(req.envStore)
-  next()
+  if (!req.envStore.marketplace) {
+    response.code = 400
+    response.message = "shop_id not found"
+    res.status(response.code).send(response);
+  } else next()
 })
 
 app.use(express.json())

@@ -2761,7 +2761,7 @@ router.get('/products_', async function (req, res) {
         response.message = "Parameter shop_id is required"
     } else if (!req.envStore.marketplace) {
         response.code = 400
-        response.message = "shop_id is not found"
+        response.message = "shop_id not found"
     } else {
         marketplace = req.envStore.marketplace
         if (marketplace == "tokopedia") {
