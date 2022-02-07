@@ -60,7 +60,7 @@ app.use(function(req, res, next){
   // console.log(req.envStore)
   if (!req.envStore.marketplace) {
     response.code = 400
-    response.message = "shop_id is not found"
+    response.message = "shop_id not found"
     res.status(response.code).send(response);
   } else next()
 })
