@@ -71,28 +71,6 @@ router.post('/product/create', async function (req, res) {
     const url_video = body.url_video
     const variant = body.variant
 
-    // if (variant !== null && variant !== undefined) {
-    //     if (variant.name === null && variant.name === undefined) {
-    //         response.code = 400;
-    //         response.message = "name is required in variant field";
-    //     } else if (variant.is_primary === null && variant.is_primary === undefined) {
-    //         response.code = 400;
-    //         response.message = "is_primary is required in variant field";
-    //     } else if (variant.status === null && variant.status === undefined) {
-    //         response.code = 400;
-    //         response.message = "status is required in variant field";
-    //     } else if (variant.price === null && variant.price === undefined) {
-    //         response.code = 400;
-    //         response.message = "price is required in variant field";
-    //     } else if (variant.stock === null && variant.stock === undefined) {
-    //         response.code = 400;
-    //         response.message = "stock is required in variant field";
-    //     } else if (variant.sku === null && variant.sku === undefined) {
-    //         response.code = 400;
-    //         response.message = "sku is required in variant field";
-    //     }
-    // }
-
     const selection = body.selection
     const logistics = body.logistics
     if (logistics !== null && logistics !== undefined) {
@@ -242,7 +220,7 @@ router.post('/product/create', async function (req, res) {
     } else if (unit_weight === null || unit_weight === undefined) {
         response.code = 400
         response.message = "Field unit_weight in request body required"
-    } else if (unit_weight !== "kg" && marketplace !== "gr") {
+    } else if (unit_weight !== "kg" && unit_weight !== "gr") {
         response.code = 400
         response.message = "Field unit_weight is only kg or gr"
     } else if (condition === null || condition === undefined) {
@@ -352,98 +330,178 @@ router.post('/product/create', async function (req, res) {
 
             let variantTokped;
             if (variant) {
+                response.code = 400;
                 let array_variant = [];
-                variant.forEach(element => {
-                    if (element.status) {
-                        status = element.status;
-                        if (status !== 'inactive' && status !== 'active') response.message = 'variant status is only "active" or "inactive';
-                    } else {
-                        response.message = 'Field variant status in body is required';
-                    }
-
-                    let status_tokped = status == 'active' ? 'LIMITED' : 'EMPTY';
-                    let stock_variant;
-                    let sku_variant;
-                    let price_variant;
-
-                    if (element.price) {
-                        price = element.price;
-                        price_variant = element.price;
-
-                        if (isInteger(price)) {
-                            response.message = 'Field variant price shall be integer, ';
-                        } else {
-                            if (price <= 100 || price >= 100000000) response.message = 'The possible variant price between 100 to 100.000.000, ';
-                        }
-                    } else {
-                        response.message = 'Field variant price in body is required, ';
-                    }
-
-                    if (element.stock) {
-                        stock = element.stock;
-                        stock_variant = element.stock;
-                        if (isInteger(stock)) {
-                            response.message = 'Field variant stock shall be integer, ';
-                        } else {
-                            if (stock <= 1 || stock >= 1000) response.message = 'The variant stock possible stock between 1 to 1.000, ';
-                        }
-                    } else {
-                        response.message = 'Field variant stock in body is required, ';
-                    }
-
-
-                    if (element.sku) {
-                        sku_variant = element.sku;
-                    } else {
-                        response.message = 'Field variant sku in body is required, ';
-                    }
-
-
-                    let arrayImageVariant = []
-                    if (element.images) {
-                        element.images.forEach(element => {
-                            if (element.url === null && element.url === undefined) {
-                                response.code = 400;
-                                response.message = "url is required in images field";
-                            } else {
-                                let img = {
-                                    file_path: element.url
-                                }
-                                arrayImage.push(img);
-                            }
-                        });
-                    }
-
-                    let variant = {
-                        is_primary: element.is_primary,
-                        status: status_tokped,
-                        price: Number(price_variant),
-                        stock: stock_variant,
-                        sku: sku_variant,
-                        combination: element.variant_id,
-                        pictures: arrayImageVariant
-                    }
-                    array_variant.push(variant);
-
-                });
-                if (selection) {
-                    selection = selection
+                if (!Array.isArray(variant)) {
+                    response.code = 400;
+                    response.message = `Field variant in request body shall be array object`;
+                    res.status(response.code).send(response);
+                    return;
+                } else if (variant.length === 0) {
+                    response.code = 400;
+                    response.message = `Field variant cant be empty`;
+                    res.status(response.code).send(response);
+                    return;
                 } else {
-                    response.message = 'Field selection for variant is required ';
+                    variant.forEach(element => {
+                        let stock_variant;
+                        let sku_variant;
+                        let price_variant;
+                        let combination;
+                        if (!element.status) {
+                            response.message = 'Field variant status in body is required';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.status !== 'inactive' && element.status !== 'active') {
+                            response.message = 'variant status is only "active" or "inactive';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.price) {
+                            response.message = 'Field variant price in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (Number.isInteger(price_variant)) {
+                            response.message = 'Field variant price shall be integer, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (price_variant <= 100 || price_variant >= 100000000) {
+                            response.message = 'The possible variant price between 100 to 100.000.000, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.stock) {
+                            response.message = 'Field variant stock in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (Number.isInteger(stock_variant)) {
+                            response.message = 'Field variant stock shall be integer, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (stock_variant <= 1 || stock_variant >= 1000) {
+                            response.message = 'The variant stock possible stock between 1 to 1.000, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.sku) {
+                            response.message = 'Field variant sku in body is required, ';
+                        } else if (!element.is_primary) {
+                            response.message = 'Field variant is_primary in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.combination) {
+                            response.message = 'Field variant combination in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            price_variant = element.price;
+                            stock_variant = element.stock;
+                            sku_variant = element.sku;
+                            let status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
+
+                            let arrayImageVariant = []
+                            if (element.images) {
+                                element.images.forEach(element => {
+                                    if (element.url === null && element.url === undefined) {
+                                        response.code = 400;
+                                        response.message = "url is required in images field";
+                                        res.status(response.code).send(response);
+                                        return;
+                                    } else {
+                                        let img = {
+                                            file_path: element.url
+                                        }
+                                        arrayImage.push(img);
+                                    }
+                                });
+                            }
+                            let variant = {
+                                is_primary: element.is_primary,
+                                status: status_tokped,
+                                price: Number(price_variant),
+                                stock: stock_variant,
+                                sku: sku_variant.toString(),
+                                combination: [combination],
+                                pictures: arrayImageVariant
+                            }
+                            array_variant.push(variant);
+                        }
+                    });
+                    if (selection) {
+                        let variant_selection = selection
+                        if (!Array.isArray(variant_selection)) {
+                            response.code = 400;
+                            response.message = `Field variant selection in request body shall be array object`;
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (variant_selection.length === 0) {
+                            response.code = 400;
+                            response.message = `Field variant selection cant be empty`;
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            variant_selection.forEach(element => {
+                                if (element.variant_id) {
+                                    variant_id = element.variant_id;
+                                } else {
+                                    response.message = 'Field seleection variant_id in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+                                if (element.variant_unit_id) {
+                                    variant_unit_id = element.variant_unit_id;
+                                } else {
+                                    response.message = 'Field seleection variant_unit_id in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+        
+                                if (element.options) {
+                                    if (!Array.isArray(element.options)) {
+                                        response.code = 400;
+                                        response.message = `Field variant images in request body shall be array object`;
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }else if (element.options.length === 0) {
+                                        response.code = 400;
+                                        response.message = `Field selection options cant be empty`;
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }else{
+                                        element.options.forEach(element => {
+                                            if(!element.unit_value_id){
+                                                response.code = 400;
+                                                response.message = `Field selection.options.unit_value_id cant be empty`;
+                                                res.status(response.code).send(response);
+                                                return;
+                                            }else if(!element.value){
+                                                response.code = 400;
+                                                response.message = `Field selection.options.value cant be empty`;
+                                                res.status(response.code).send(response);
+                                                return;
+                                            }
+                                        });
+                                    }
+                                }else{
+                                    response.message = 'Field seleection options in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+                            });
+                        }
+                    } else {
+                        response.code = 400;
+                        response.message = 'Field selection for variant is required ';
+                        res.status(response.code).send(response);
+                        return;
+                    }
                 }
 
-                variantTokped = {
-                    products: array_variant,
-                    selection: selection
-                }
-
-            }
+            } 
 
             let hitAPI = await apiTokped.createProductV3(shop_id, product_name, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
                 , arrayImage, videos, variantTokped)
             res.status(hitAPI.code).send(hitAPI);
             return;
+
         } else if (marketplace == "shopee") {
             let arrayImage = [];
             images.forEach(element => {
@@ -515,30 +573,113 @@ router.post('/product/create', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
+            let new_weight;
+            if (unit_weight !== 'KG') new_weight = weight / 1000
             response.code = 400
-            console.log(weight);
-            console.log("is weight");
             if (brand === null || brand === undefined) {
                 response.message = "Field brand in body is required,";
-            } else if (height === null || height === undefined) {
-                response.message = "Field height in body is required,";
-            } else if (length === null || length === undefined) {
-                response.message = "Field length in body is required,";
-            } else if (width === null || width === undefined) {
-                response.message = "Field width in body is required,";
-            } else if (height === null || height === undefined) {
-                response.message = "Field height in body is required,";
-            } else if (weight === null || weight === undefined) {
-                response.message = "Field weight in body is required,";
             } else {
-                let arrayImage = "";
+                let array_variant = [];
+                if (variant) {
+                    if (!Array.isArray(variant)) {
+                        response.code = 400;
+                        response.message = `Field variant in request body shall be array object`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (variant.length === 0) {
+                        response.code = 400;
+                        response.message = `Field variant cant be empty`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        variant.forEach(element => {
+                            let variantLazada = `<Sku>`;
+                            if (element.sku == null || element.sku == undefined) {
+                                response.message = "Field sku in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.price == null || element.price == undefined) {
+                                response.message = "Field price in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.stock == null || element.stock == undefined) {
+                                response.message = "Field stock in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.length == null || element.length == undefined) {
+                                response.message = "Field length in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.weight == null || element.weight == undefined) {
+                                response.message = "Field weight in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.height == null || element.weight == undefined) {
+                                response.message = "Field height in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else {
+                                let sellerSku = element.sku;
+                                if (sellerSku) variantLazada += `<SellerSku>${sellerSku}</SellerSku>`
+
+                                let color_family = element.color_family;
+                                if (color_family) variantLazada += `<color_family>${color_family}</color_family>`
+
+                                let size = element.size;
+                                if (size) variantLazada += `<size>${size}</size>`
+
+                                let stock = element.stock;
+                                if (stock) variantLazada += `<quantity>${stock}</quantity>`
+
+                                let price = element.price;
+                                if (price) variantLazada += `<price>${price}</price>`
+
+                                let length = element.length;
+                                if (length) variantLazada += `<package_length>${length}</package_length>`
+
+                                //height
+                                let height = element.height;
+                                if (height) variantLazada += `<package_height>${height}</package_height>`
+
+                                //weight
+                                let weight;
+                                if (unit_weight !== 'KG') weight = element.weight / 1000
+                                if (weight) variantLazada += `<package_weight>${weight}</package_weight>`
+
+                                let width = element.width;
+                                if (width) variantLazada += `<package_width>${width}</package_width>`
+
+
+                                if (element.images) {
+                                    variantLazada += `<Images>`
+                                    element.images.forEach(element => {
+                                        if (element.url) {
+                                            variantLazada += `<Image>${element.url}</Image>`
+                                        }
+                                    });
+                                    variantLazada += `</Images>`
+                                }
+
+                                variantLazada += `</Sku>`
+                                array_variant.push(variantLazada);
+                            }
+                        });
+                    }
+                } else {
+                    response.message = "Field variant on body is required on lazada";
+                    res.status(response.code).send(response);
+                    return;
+                }
+
+                let array_images_product = [];
                 images.forEach(element => {
-                    arrayImage += `<Image>${element.url}</Image>`
+                    let imageProduct;
+                    if (element.url) {
+                        imageProduct = `<Image>${element.url}</Image>`
+                        array_images_product.push(imageProduct);
+                    }
                 });
-                let hitAPI = await apiLazada.createProduct(
-                    category_id, arrayImage, product_name, description, brand, "", "", url_video, "", sku, "", "", stock
-                    , price, length, height, weight, width, "", arrayImage
-                )
+                let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant);
                 res.status(hitAPI.code).send(hitAPI);
                 return;
             }
@@ -859,7 +1000,7 @@ router.post('/product/update', async function (req, res) {
                         if (time_unit !== 'day' && time_unit !== 'week') response.message = 'preorder.time_unit is only day or week, ';
                     }
                     else {
-                        $preorder_time = 'DAY';
+                        preorder_time = 'DAY';
                         preorderTokopedia = {
                             is_active: true,
                             duration: Number(preorder.duration),
@@ -885,93 +1026,176 @@ router.post('/product/update', async function (req, res) {
                 ]
             }
 
+
             let variantTokped;
             if (variant) {
+                response.code = 400;
                 let array_variant = [];
-                variant.forEach(element => {
-                    if (element.status) {
-                        status = element.status;
-                        if (status !== 'inactive' && status !== 'active') response.message = 'variant status is only "active" or "inactive';
-                    } else {
-                        response.message = 'Field variant status in body is required';
-                    }
-
-                    let status_tokped = status == 'active' ? 'LIMITED' : 'EMPTY';
-                    let stock_variant;
-                    let sku_variant;
-                    let price_variant;
-
-                    if (element.price) {
-                        price = element.price;
-                        price_variant = element.price;
-
-                        if (isInteger(price)) {
-                            response.message = 'Field variant price shall be integer, ';
-                        } else {
-                            if (price <= 100 || price >= 100000000) response.message = 'The possible variant price between 100 to 100.000.000, ';
-                        }
-                    } else {
-                        response.message = 'Field variant price in body is required, ';
-                    }
-
-                    if (element.stock) {
-                        stock = element.stock;
-                        stock_variant = element.stock;
-                        if (isInteger(stock)) {
-                            response.message = 'Field variant stock shall be integer, ';
-                        } else {
-                            if (stock <= 1 || stock >= 1000) response.message = 'The variant stock possible stock between 1 to 1.000, ';
-                        }
-                    } else {
-                        response.message = 'Field variant stock in body is required, ';
-                    }
-
-
-                    if (element.sku) {
-                        sku_variant = element.sku;
-                    } else {
-                        response.message = 'Field variant sku in body is required, ';
-                    }
-
-
-                    let arrayImageVariant = []
-                    if (element.images) {
-                        element.images.forEach(element => {
-                            if (element.url === null && element.url === undefined) {
-                                response.code = 400;
-                                response.message = "url is required in images field";
-                            } else {
-                                let img = {
-                                    file_path: element.url
-                                }
-                                arrayImage.push(img);
-                            }
-                        });
-                    }
-
-                    let variant = {
-                        is_primary: element.is_primary,
-                        status: status_tokped,
-                        price: Number(price_variant),
-                        stock: stock_variant,
-                        sku: sku_variant,
-                        combination: element.variant_id,
-                        pictures: arrayImageVariant
-                    }
-                    array_variant.push(variant);
-
-                });
-                if (selection) {
-                    selection = selection
-                    variantTokped.selection = selection
+                if (!Array.isArray(variant)) {
+                    response.code = 400;
+                    response.message = `Field variant in request body shall be array object`;
+                    res.status(response.code).send(response);
+                    return;
+                } else if (variant.length === 0) {
+                    response.code = 400;
+                    response.message = `Field variant cant be empty`;
+                    res.status(response.code).send(response);
+                    return;
                 } else {
-                    response.message = 'Field selection for variant is required ';
-                }
-                if (variantTokped.length !== 0) {
-                    variant.products = array_variant
+                    variant.forEach(element => {
+                        let stock_variant;
+                        let sku_variant;
+                        let price_variant;
+                        let combination;
+                        if (!element.status) {
+                            response.message = 'Field variant status in body is required';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.status !== 'inactive' && element.status !== 'active') {
+                            response.message = 'variant status is only "active" or "inactive';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.price) {
+                            response.message = 'Field variant price in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (Number.isInteger(price_variant)) {
+                            response.message = 'Field variant price shall be integer, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (price_variant <= 100 || price_variant >= 100000000) {
+                            response.message = 'The possible variant price between 100 to 100.000.000, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.stock) {
+                            response.message = 'Field variant stock in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (Number.isInteger(stock_variant)) {
+                            response.message = 'Field variant stock shall be integer, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (stock_variant <= 1 || stock_variant >= 1000) {
+                            response.message = 'The variant stock possible stock between 1 to 1.000, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.sku) {
+                            response.message = 'Field variant sku in body is required, ';
+                        } else if (!element.is_primary) {
+                            response.message = 'Field variant is_primary in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (!element.combination) {
+                            response.message = 'Field variant combination in body is required, ';
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            price_variant = element.price;
+                            stock_variant = element.stock;
+                            sku_variant = element.sku;
+                            let status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
+
+                            let arrayImageVariant = []
+                            if (element.images) {
+                                element.images.forEach(element => {
+                                    if (element.url === null && element.url === undefined) {
+                                        response.code = 400;
+                                        response.message = "url is required in images field";
+                                        res.status(response.code).send(response);
+                                        return;
+                                    } else {
+                                        let img = {
+                                            file_path: element.url
+                                        }
+                                        arrayImage.push(img);
+                                    }
+                                });
+                            }
+                            let variant = {
+                                is_primary: element.is_primary,
+                                status: status_tokped,
+                                price: Number(price_variant),
+                                stock: stock_variant,
+                                sku: sku_variant.toString(),
+                                combination: [combination],
+                                pictures: arrayImageVariant
+                            }
+                            array_variant.push(variant);
+                        }
+                    });
+                    if (selection) {
+                        let variant_selection = selection
+                        if (!Array.isArray(variant_selection)) {
+                            response.code = 400;
+                            response.message = `Field variant selection in request body shall be array object`;
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (variant_selection.length === 0) {
+                            response.code = 400;
+                            response.message = `Field variant selection cant be empty`;
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            variant_selection.forEach(element => {
+                                if (element.variant_id) {
+                                    variant_id = element.variant_id;
+                                } else {
+                                    response.message = 'Field seleection variant_id in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+                                if (element.variant_unit_id) {
+                                    variant_unit_id = element.variant_unit_id;
+                                } else {
+                                    response.message = 'Field seleection variant_unit_id in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+        
+                                if (element.options) {
+                                    if (!Array.isArray(element.options)) {
+                                        response.code = 400;
+                                        response.message = `Field variant images in request body shall be array object`;
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }else if (element.options.length === 0) {
+                                        response.code = 400;
+                                        response.message = `Field selection options cant be empty`;
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }else{
+                                        element.options.forEach(element => {
+                                            if(!element.unit_value_id){
+                                                response.code = 400;
+                                                response.message = `Field selection.options.unit_value_id cant be empty`;
+                                                res.status(response.code).send(response);
+                                                return;
+                                            }else if(!element.value){
+                                                response.code = 400;
+                                                response.message = `Field selection.options.value cant be empty`;
+                                                res.status(response.code).send(response);
+                                                return;
+                                            }
+                                        });
+                                    }
+                                }else{
+                                    response.message = 'Field seleection options in body is required, ';
+                                    res.status(response.code).send(response);
+                                    return;
+                                }
+                            });
+                        }
+                    } else {
+                        response.code = 400;
+                        response.message = 'Field selection for variant is required ';
+                        res.status(response.code).send(response);
+                        return;
+                    }
                 }
 
-            }
+            } 
+
+
 
             let hitAPI = await apiTokped.updateProductV3(shop_id, product_name, product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
@@ -1006,7 +1230,7 @@ router.post('/product/update', async function (req, res) {
             } else if (wholesale_qty || wholesale_price) {
                 if (wholesale_qty) {
                     if (wholesale_price) {
-                        if (Number.isInteger(wholesale_qty)) {
+                        if (Number.teger(wholesale_qty)) {
                             if (Number.isInteger(wholesale_price)) {
                                 wholesales = [{
                                     "min_count": Number(wholesale_qty),
@@ -1927,34 +2151,34 @@ router.post('/request-pickup', async function (req, res) {
                             response.message = "Field orders.package_id is required in blibli"
                             res.status(response.code).send(response);
                             return;
-                        }else if (element.delivery_date_start) {
+                        } else if (element.delivery_date_start) {
                             response.code = 400
                             response.message = "Field orders.delivery_date_start is required in blibli if product type bigProduct"
                             res.status(response.code).send(response);
                             return;
-                        }else if (element.delivery_date_end) {
+                        } else if (element.delivery_date_end) {
                             response.code = 400
                             response.message = "Field orders.delivery_date_end is required in blibli if product type bigProduct"
                             res.status(response.code).send(response);
                             return;
-                        }else if (element.settlement_code) {
+                        } else if (element.settlement_code) {
                             response.code = 400
                             response.message = "Field orders.settlement_code is required in blibli if product type bigProduct"
                             res.status(response.code).send(response);
                             return;
-                        }else if (element.courier_name) {
+                        } else if (element.courier_name) {
                             response.code = 400
                             response.message = "Field orders.courier_name is required in blibli if product type bigProduct"
                             res.status(response.code).send(response);
                             return;
-                        }else if (element.courier_type) {
+                        } else if (element.courier_type) {
                             response.code = 400
                             response.message = "Field orders.courier_type is required in blibli if product type bigProduct"
                             res.status(response.code).send(response);
                             return;
                         }
                         if (response.code == 200) {
-                            hitAPI = await apiBlibli.bigProductPickup(element.package_id,shop_id,"username",element.delivery_date_start,element.delivery_date_end,element.courier_name,element.courier_type,element.settlement_code)
+                            hitAPI = await apiBlibli.bigProductPickup(element.package_id, shop_id, "username", element.delivery_date_start, element.delivery_date_end, element.courier_name, element.courier_type, element.settlement_code)
                             if (hitAPI.code != 200) {
                                 res.status(hitAPI.code).send(hitAPI);
                                 return;
@@ -1975,7 +2199,7 @@ router.post('/request-pickup', async function (req, res) {
                         }
 
                         if (response.code == 200) {
-                            hitAPI = await apiBlibli.bopisPickup(element.order_id,element.sku_id);
+                            hitAPI = await apiBlibli.bopisPickup(element.order_id, element.sku_id);
                             if (hitAPI.code != 200) {
                                 res.status(hitAPI.code).send(hitAPI);
                                 return;
@@ -1993,14 +2217,14 @@ router.post('/request-pickup', async function (req, res) {
                             response.message = "Field orders.order_id is required in blibli if product type partial"
                             res.status(response.code).send(response);
                             return;
-                        }else  if (element.quantity) {
+                        } else if (element.quantity) {
                             response.code = 400
                             response.message = "Field orders.quantity is required in blibli if product type partial"
                             res.status(response.code).send(response);
                             return;
                         }
                         if (response.code == 200) {
-                            hitAPI = await apiBlibli.partialPickup(element.reason,element.order_id,element.quantity,element.invoice);
+                            hitAPI = await apiBlibli.partialPickup(element.reason, element.order_id, element.quantity, element.invoice);
                             if (hitAPI.code != 200) {
                                 res.status(hitAPI.code).send(hitAPI);
                                 return;
@@ -2071,7 +2295,7 @@ router.post('/request-pickup', async function (req, res) {
             return;
         }
     }
-    if(response.message){
+    if (response.message) {
         res.status(response.code).send(response);
     }
     return;

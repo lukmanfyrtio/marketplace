@@ -132,6 +132,7 @@ router.post('/process/order', async function (req, res) {
   const orders = body.orders;
 
 
+  console.log(orders);
 
   if (marketplace === null || marketplace === undefined || marketplace === '') {
     response.code = 400
@@ -149,10 +150,12 @@ router.post('/process/order', async function (req, res) {
   } else if (orders === null || orders === undefined) {
     response.code = 400
     response.message = "Field order is required"
-  } else if (!Array.isArray(images)) {
+  } else if (!Array.isArray(orders)) {
     response.code = 400
     response.message = "Field orders is must be array object"
   } else {
+    response.code = 200;
+    response.message = "Your request has been processed successfully"
     if (marketplace == "tokopedia") {
       if(action=="accept"){
         let hitAPI;
@@ -197,7 +200,7 @@ router.post('/process/order', async function (req, res) {
         response.code = 400
         response.message = "Field action is only acceptCancellation,rejectCancellation or reject for lazada marketplace"
       }else if(action == 'acceptCancellation' || action == 'rejectCancellation'){
-        orders.forEach(element => {
+        orders.forEach(async element => {
           if (element.order_id) {
             response.code = 400
             response.message = "Field order_id is required "
@@ -251,23 +254,27 @@ router.post('/process/order', async function (req, res) {
         var orderIds=[]
         let delivery_type;
         let shipping_provider;
-        orders.forEach(element => {
-          if (element.order_id) {
+        orders.forEach( async element => {
+          if (element.order_id==undefined||element.order_id==null) {
             response.code = 400
             response.message = "Field order_id is required "
-          } else if (element.delivery_type) {
+          } else if (element.delivery_type==undefined||element.delivery_type==null) {
             response.code = 400
             response.message = "Field delivery_type is required ";
-          } else if (element.shipping_provider) {
+          } else if (element.shipping_provider==undefined||element.shipping_provider==null) {
             response.code = 400
             response.message = "Field shipping_provider is required "
           }else{
-            orderIds.push(element.order_id);
+              hitAPI = await apiLazada.acceptOrder(`${element.order_id}`,element.shipping_provider,element.delivery_type);
+              if (hitAPI.codeStatus != '0') {
+                res.status(hitAPI.code).send(hitAPI);
+                return;
+            }else{
+              res.status(response.code).send(response);
+              return;
+            }
           }
         });
-        let hitAPI = await apiLazada.acceptOrder(orderIds,shipping_provider,delivery_type);
-        res.status(hitAPI.code).send(hitAPI);
-        return;
       }else if(action!="accept"&&action!="reject"){
         response.code = 400
         response.message = "Field action is only accept or reject for lazada marketplace"
@@ -291,6 +298,7 @@ router.post('/process/order', async function (req, res) {
         res.status(await hitAPI.code).send(hitAPI);
         return;
       }
+      return;
     }
   }
   res.status(response.code).send(response)
