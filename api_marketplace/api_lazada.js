@@ -62,7 +62,10 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
             responseData.code = response.status;
             if (response.data.code == '0') {
                 responseData.message = 'Your request has been processed successfully';
-            } else {
+            } else if(response.data.detail){
+                responseData.message=response.data.message+", "+response.data.detail[0].message;
+                console.log(response);
+            }else{
                 responseData.message = response.data.message;
             }
             responseData.codeStatus=response.data.code;
@@ -291,8 +294,8 @@ function createProduct(category_id, productImages, product_name, short_descripti
     param.payload = `<Request>
     <Product>
     <PrimaryCategory>${category_id}</PrimaryCategory>
-    <SPUId/>
-    <AssociatedSku/>
+    <SPUId></SPUId>
+    <AssociatedSku></AssociatedSku>
     <Images>${productImages}</Images> 
     <Attributes> 
     <name>${product_name}</name> 
@@ -305,7 +308,7 @@ function createProduct(category_id, productImages, product_name, short_descripti
     </Skus> 
     </Product> 
     </Request>`;
-
+    console.log(param.payload);
     return hitApi("post", path, param, {}, {})
 }
 

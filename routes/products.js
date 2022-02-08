@@ -382,19 +382,17 @@ router.post('/product/create', async function (req, res) {
                             return;
                         } else if (!element.sku) {
                             response.message = 'Field variant sku in body is required, ';
-                        } else if (!element.is_primary) {
-                            response.message = 'Field variant is_primary in body is required, ';
-                            res.status(response.code).send(response);
-                            return;
-                        } else if (!element.combination) {
+                        } else if (element.combination === null | element.combination === undefined) {
                             response.message = 'Field variant combination in body is required, ';
                             res.status(response.code).send(response);
                             return;
                         } else {
+                            console.log("sini");
                             price_variant = element.price;
                             stock_variant = element.stock;
                             sku_variant = element.sku;
-                            let status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
+                            let status_tokped;
+                            if (element.status) status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
 
                             let arrayImageVariant = []
                             if (element.images) {
@@ -408,7 +406,7 @@ router.post('/product/create', async function (req, res) {
                                         let img = {
                                             file_path: element.url
                                         }
-                                        arrayImage.push(img);
+                                        arrayImageVariant.push(img);
                                     }
                                 });
                             }
@@ -418,13 +416,19 @@ router.post('/product/create', async function (req, res) {
                                 price: Number(price_variant),
                                 stock: stock_variant,
                                 sku: sku_variant.toString(),
-                                combination: [combination],
-                                pictures: arrayImageVariant
+                                combination: [element.combination],
+                                // pictures: arrayImageVariant
                             }
                             array_variant.push(variant);
                         }
                     });
+                    
+                    console.log(array_variant);
                     if (selection) {
+                        variantTokped = {
+                            products: array_variant,
+                            selection: selection
+                        }
                         let variant_selection = selection
                         if (!Array.isArray(variant_selection)) {
                             response.code = 400;
@@ -438,40 +442,40 @@ router.post('/product/create', async function (req, res) {
                             return;
                         } else {
                             variant_selection.forEach(element => {
-                                if (element.variant_id) {
-                                    variant_id = element.variant_id;
+                                if (element.id) {
+                                    id = element.id;
                                 } else {
-                                    response.message = 'Field seleection variant_id in body is required, ';
+                                    response.message = 'Field selection id in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
                                 }
-                                if (element.variant_unit_id) {
-                                    variant_unit_id = element.variant_unit_id;
+                                if (element.unit_id !== null || element.unit_id !== undefined) {
+                                    unit_id = element.unit_id;
                                 } else {
-                                    response.message = 'Field seleection variant_unit_id in body is required, ';
+                                    response.message = 'Field selection unit_id in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
                                 }
-        
+
                                 if (element.options) {
                                     if (!Array.isArray(element.options)) {
                                         response.code = 400;
                                         response.message = `Field variant images in request body shall be array object`;
                                         res.status(response.code).send(response);
                                         return;
-                                    }else if (element.options.length === 0) {
+                                    } else if (element.options.length === 0) {
                                         response.code = 400;
                                         response.message = `Field selection options cant be empty`;
                                         res.status(response.code).send(response);
                                         return;
-                                    }else{
+                                    } else {
                                         element.options.forEach(element => {
-                                            if(!element.unit_value_id){
+                                            if (!element.unit_value_id) {
                                                 response.code = 400;
                                                 response.message = `Field selection.options.unit_value_id cant be empty`;
                                                 res.status(response.code).send(response);
                                                 return;
-                                            }else if(!element.value){
+                                            } else if (!element.value) {
                                                 response.code = 400;
                                                 response.message = `Field selection.options.value cant be empty`;
                                                 res.status(response.code).send(response);
@@ -479,7 +483,7 @@ router.post('/product/create', async function (req, res) {
                                             }
                                         });
                                     }
-                                }else{
+                                } else {
                                     response.message = 'Field seleection options in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
@@ -494,7 +498,7 @@ router.post('/product/create', async function (req, res) {
                     }
                 }
 
-            } 
+            }
 
             let hitAPI = await apiTokped.createProductV3(shop_id, product_name, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
@@ -679,7 +683,7 @@ router.post('/product/create', async function (req, res) {
                         array_images_product.push(imageProduct);
                     }
                 });
-                let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant);
+                let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant.join(''));
                 res.status(hitAPI.code).send(hitAPI);
                 return;
             }
@@ -1151,26 +1155,26 @@ router.post('/product/update', async function (req, res) {
                                     res.status(response.code).send(response);
                                     return;
                                 }
-        
+
                                 if (element.options) {
                                     if (!Array.isArray(element.options)) {
                                         response.code = 400;
                                         response.message = `Field variant images in request body shall be array object`;
                                         res.status(response.code).send(response);
                                         return;
-                                    }else if (element.options.length === 0) {
+                                    } else if (element.options.length === 0) {
                                         response.code = 400;
                                         response.message = `Field selection options cant be empty`;
                                         res.status(response.code).send(response);
                                         return;
-                                    }else{
+                                    } else {
                                         element.options.forEach(element => {
-                                            if(!element.unit_value_id){
+                                            if (!element.unit_value_id) {
                                                 response.code = 400;
                                                 response.message = `Field selection.options.unit_value_id cant be empty`;
                                                 res.status(response.code).send(response);
                                                 return;
-                                            }else if(!element.value){
+                                            } else if (!element.value) {
                                                 response.code = 400;
                                                 response.message = `Field selection.options.value cant be empty`;
                                                 res.status(response.code).send(response);
@@ -1178,7 +1182,7 @@ router.post('/product/update', async function (req, res) {
                                             }
                                         });
                                     }
-                                }else{
+                                } else {
                                     response.message = 'Field seleection options in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
@@ -1193,7 +1197,7 @@ router.post('/product/update', async function (req, res) {
                     }
                 }
 
-            } 
+            }
 
 
 
