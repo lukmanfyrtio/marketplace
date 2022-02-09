@@ -33,7 +33,7 @@ pass : it.VCI.2020
 
 2. Shopee https://open.shopee.com/documents?version=2
 
-	Auth link: https://partner.shopeemobile.com/api/v1/shop/auth_partner?id=70148&token=22eceb196a8698b22e54520d54345f8ad2adff0a5c778672791c65f69432145f&redirect=http://wms.gosyenretail.co.id/
+	Auth link: https://partner.shopeemobile.com/api/v1/shop/auth_partner?id=1005913&token=22eceb196a8698b22e54520d54345f8ad2adff0a5c778672791c65f69432145f&redirect=http://wms.gosyenretail.co.id/
 
 	Partner ID: 1005913<br>
 	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13
