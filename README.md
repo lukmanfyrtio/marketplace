@@ -37,6 +37,7 @@ pass : it.VCI.2020
 	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13
 
 	Akun Seller<br>
+	Shop ID：38923<br>
 	https://seller.test-stable.shopee.co.id/account/signin?next=%2F<br>
 	username : SANDBOX.7c328b48afb9016922f8<br>
 	password : 2ce147a7e1526ec7
