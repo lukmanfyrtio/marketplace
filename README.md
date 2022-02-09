@@ -32,6 +32,8 @@ pass : it.VCI.2020
 	Shop ID: 12688456
 
 2. Shopee https://open.shopee.com/documents?version=2
+	Partner ID: 1005913<br>
+	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13<br>
 
 	Akun Seller 
 	https://seller.test-stable.shopee.co.id/account/signin?next=%2F
