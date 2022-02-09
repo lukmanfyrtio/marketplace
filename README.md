@@ -32,7 +32,9 @@ pass : it.VCI.2020
 	Shop ID: 12688456
 
 2. Shopee https://open.shopee.com/documents?version=2
-	
+
+	Auth link: https://partner.shopeemobile.com/api/v1/shop/auth_partner?id=70148&token=22eceb196a8698b22e54520d54345f8ad2adff0a5c778672791c65f69432145f&redirect=http://wms.gosyenretail.co.id/
+
 	Partner ID: 1005913<br>
 	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13
 
@@ -47,7 +49,8 @@ pass : it.VCI.2020
 	Username : SANDBOX_BUYER.d9eb67b03d07ee<br>
 	Password : 307f19f185dbbcf7
 
-3. Lazada https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193487.0.0.3ac413fe41w3Fp&nodeId=27493&docId=118729#?nodeId=29586&docId=120248<br>
+3. Lazada https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193487.0.0.3ac413fe41w3Fp&nodeId=27493&docId=118729#?nodeId=29586&docId=120248
+
 App Key: 106390<br>
 App Secret: 35D7YglUofxHQRZ85xzLd7dopVjo4XBw
 
