@@ -1,43 +1,74 @@
 
 const axios = require('axios')
 const crypto = require('crypto')
+const db = require('mariadb')
+const {conf, env} = require('../conf') 
 
+const pl = db.createPool(conf.db)
+async function eq(q) {
+  let cn, rw
+  try {
+  	cn = await pl.getConnection()
+  	rw = await cn.query(q)
+  } catch (err) {
+    rw = err
+  } finally {
+    if (cn) cn.end()
+    return rw
+  }
+}
 
-let url = `https://partner.shopeemobile.com`;
-let partnerKey = 'f9c608fba08254482f2ab16a1fbbf39b7b409dbccdad594f798c9707ca6aab0e';
-let partner_id = 843372;
+let url = `https://partner.test-stable.shopeemobile.com`;
+let partnerKey = 'cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13';
+let partner_id = 1005913;
 let timest;
-let redirectUrl = "http://localhost:81";
+let redirectUrl = "http://wms.gosyenretail.co.id/";
 
 
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null) {
-  timest = new Date().getTime() / 1000;
-  let resultSign = sign(partnerKey, partner_id, path, timest);
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore) {
+  let timest;
+  timest = Math.round(new Date().getTime() / 1000)
   //set param common 
-  query.sign = resultSign;
-  query.timestamp = timest;
-  query.partner_id = partner_id;
-  if (query.shop_id) query.access_token = await getToken(query.shop_id) ? "" : "";
+  let token=envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
+  query.timestamp = Number(timest);
+  query.partner_id = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}`;
 
+  if (query.shop_id) query.access_token =token;
+
+  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest+token+query.shop_id;
+  let resultSign = sign(baseString);
+  query.sign = resultSign;
 
   let responseData = {};
   responseData.marketplace = "shopee"
   responseData.timestamp = new Date().getTime();
+  responseData.message = 'Your request has been processed successfully';
   return new Promise(function (resolve, reject) {
     axios({
       method: method,
-      url: url + path,
+      url:  `${envStore && envStore.api_url ? envStore.api_url : url}` + path,
       params: query,
       data: body
 
     }).then(function (response) {
-      console.log(response);
+      console.log(response.config);
+      console.log(response.data);
       responseData.code = response.status;
-      responseData.message = response.data.msg;
+
+      if(response.data.msg){
+        responseData.message = response.data.msg;
+      }
+
+      if(response.data.message){
+        responseData.message = response.data.message;
+      }
+
+      responseData.data = response.data.response;
       resolve(responseData);
 
     }).catch((e) => {
-      console.log(e.response);
+      console.log(e.response.config);
+      console.log(e.response.data);
       responseData.code = e.response.status;
       if (e.response.status == 403) {
         responseData.message = e.response.data.message
@@ -48,8 +79,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
 }
 
 
-function sign(path, time) {
-  let baseString = partner_id + path + time;
+function sign(baseString) {
   var hmac = crypto.createHmac('sha256', partnerKey);
   //passing the data to be hashed
   let data = hmac.update(baseString);
@@ -57,47 +87,36 @@ function sign(path, time) {
   return data.digest('hex');
 }
 
-function getCode() {
+function getCode(envStore) {
+  let timest;
   let param = {};
-  timest = new Date().getTime() / 1000;
+  timest = Number(Math.round(new Date().getTime() / 1000))
   let path = '/api/v2/shop/auth_partner'
-  let result_sign = sign(path, timest);
+  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest;
+  let result_sign = sign(baseString);
 
   param.partner_id = partner_id;
   param.timestamp = timest;
   param.sign = result_sign;
   param.redirect = redirectUrl;
 
-
-  return new Promise(function (resolve, reject) {
-    axios({
-      method: 'get',
-      url: url + path,
-      params: param,
-
-    }).then(function (response) {
-      resolve(response.data);
-
-    }).catch((e) => {
-      resolve(e.response.data);
-    });
-  });
+  return url+path+"?"+new URLSearchParams(param).toString();
 }
 
-async function getToken(shop_id, main_account_id) {
+async function getToken(shop_id, main_account_id,code,envStore) {
   let param = {};
   timest = new Date().getTime() / 1000;
   let path = '/api/v2/auth/token/get'
-  let result_sign = sign(path, timest);
+  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest;
+  let result_sign = sign(baseString);
 
   param.partner_id = partner_id;
   param.timestamp = timest;
   param.sign = result_sign;
-  let code = await getCode();
   let body = {
     code: code,
-    partner_id: partner_id,
-    shop_id: shop_id,
+    partner_id: Number(partner_id),
+    shop_id: Number(shop_id),
   }
 
   if (main_account_id) {
@@ -112,10 +131,57 @@ async function getToken(shop_id, main_account_id) {
       data: body
 
     }).then(function (response) {
+      const rs = eq(  
+        `update stores set token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
+      )
+      if (rs && rs.text) console.log(rs)
       resolve(response.data);
-
     }).catch((e) => {
       resolve(e.response.data);
+    });
+  });
+}
+
+async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) {
+  let param = {};
+  timest = new Date().getTime() / 1000;
+  let path = '/api/v2/auth/access_token/get'
+  let baseString = partner_id + path + timest;
+  let result_sign = sign(baseString);
+
+  param.partner_id = partner_id;
+  param.timestamp = timest;
+  param.sign = result_sign;
+  let body = {
+    refresh_token: refresh_token,
+    partner_id: Number(partner_id),
+    shop_id: Number(shop_id),
+  }
+
+  if (main_account_id) {
+    body.main_account_id = main_account_id
+  }
+
+  return new Promise(function (resolve, reject) {
+    axios({
+      method: 'post',
+      url: url + path,
+      params: param,
+      data: body
+
+    }).then(function (response) {
+      console.log(response.data);
+      if(response.data.access_token){
+        console.log("masuk");
+        const rs = eq(  
+          `update stores set token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
+        )
+        if (rs && rs.text) console.log(rs)
+        resolve(response.data.access_token);
+      }
+    }).catch((e) => {
+      console.log(e);
+      resolve(`${envStore && envStore.token ? envStore.token : token}`);
     });
   });
 }
@@ -123,7 +189,7 @@ async function getToken(shop_id, main_account_id) {
 
 
 //https://open.shopee.com/documents?module=94&type=1&id=557&version=2
-function getSingleOrder(shop_id, order_sn_list, response_optional_fields) {
+function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStore) {
   //path 
   let path = "/api/v2/order/get_order_detail";
   let param = {};
@@ -136,12 +202,14 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields) {
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 
 //https://open.shopee.com/documents?module=94&type=1&id=542&version=2
 function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
-  , order_status, response_optional_fields) {
+  , order_status, response_optional_fields,envStore) {
   //path 
   let path = "/api/v2/order/get_order_list"
   let param = {};
@@ -162,11 +230,13 @@ function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 //product list
 //https://open.shopee.com/documents?module=89&type=1&id=614&version=2
-function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_from, update_time_to) {
+async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_from, update_time_to,envStore) {
   //path 
   let path = "/api/v2/product/get_item_list"
   let param = {};
@@ -181,16 +251,26 @@ function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_from, u
   if (update_time_from) param.update_time_from = update_time_from
   if (update_time_to) param.update_time_to = update_time_to
 
-  return hitApi(
+  let list_item_id= await hitApi(
     'get', //method
     path, //path 
     param,//query
+    null,//body
+    envStore
   );
+  if(list_item_id.error!=='')return list_item_id
+  item_info_list=[];
+  for await (const item of list_item_id.data.item){
+    item_info_list.push(item.item_id);
+  }
+  const itemInfo= await getSingleProduct(shop_id,item_info_list,null,null,envStore);
+  list_item_id.data.item=itemInfo.data.item_list;
+  return list_item_id;
 }
 
 //product base info
 //https://open.shopee.com/documents?module=89&type=1&id=612&version=2
-function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_policy) {
+function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_policy,envStore) {
 
   //path 
   let path = "/api/v2/product/get_item_base_info"
@@ -198,16 +278,17 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
   param.shop_id = shop_id;
 
   //required
-  if (item_id_list) param.item_id_list = item_id_list
+  if (item_id_list) param.item_id_list = `${item_id_list}`
 
   //optional
   if (need_tax_info) param.need_tax_info = need_tax_info
   if (need_complaint_policy) param.need_complaint_policy = need_complaint_policy
-
   return hitApi(
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 
@@ -219,7 +300,7 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
 // "model_id": 3456,
 // "original_price": 11.11
 // }]
-function updatePrice(shop_id, item_id, new_price) {
+function updatePrice(shop_id, item_id, new_price,envStore) {
   //path 
   let path = "/api/v2/product/update_price"
   let param = {};
@@ -239,6 +320,7 @@ function updatePrice(shop_id, item_id, new_price) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
@@ -250,7 +332,7 @@ function updatePrice(shop_id, item_id, new_price) {
 //   "model_id": 3456,
 //   "normal_stock": 100
 //   }]
-function updateStock(shop_id, item_id, new_stock) {
+function updateStock(shop_id, item_id, new_stock,envStore) {
   //path 
   let path = "/api/v2/product/update_stock"
   let param = {};
@@ -267,11 +349,12 @@ function updateStock(shop_id, item_id, new_stock) {
     'post', //method
     path, //path 
     param,//query
-    body//body
+    body//body,
+    ,envStore
   );
 }
 
-function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn) {
+function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
   //path 
   let path = "/api/v2/product/update_stock"
   let param = {};
@@ -306,6 +389,7 @@ function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,t
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
@@ -313,7 +397,7 @@ function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,t
 
 //product get module list
 //https://open.shopee.com/documents?module=89&type=1&id=618&version=2
-function getModuleList(item_id_list) {
+function getModuleList(item_id_list,envStore) {
   //path 
   let path = "/api/v2/product/get_model_list"
   let param = {};
@@ -324,12 +408,14 @@ function getModuleList(item_id_list) {
     'get', //method
     path, //path 
     param,//query
+    null
+    ,envStore
   );
 }
 
 // get ship parameter
 //https://open.shopee.com/documents/v2/v2.logistics.get_shipping_parameter?module=95&type=1
-function getShipParameter(shop_id,order_sn) {
+function getShipParameter(shop_id,order_sn,envStore) {
   //path 
   let path = "/api/v2/product/get_model_list"
   let param = {};
@@ -341,13 +427,15 @@ function getShipParameter(shop_id,order_sn) {
     'get', //method
     path, //path 
     param,//query
+    null
+    ,envStore
   );
 }
 
 
 //get comments product
 //https://open.shopee.com/documents?module=89&type=1&id=562&version=2
-function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size="") {
+function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size="",envStore) {
 
   //path 
   let path = "/api/v2/product/get_comment";
@@ -364,12 +452,14 @@ function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size=""
     'get', //method
     path, //path 
     param,//query
+    null
+    ,envStore
   );
 }
 
 //get category product
 //https://open.shopee.com/documents?module=89&type=1&id=562&version=2
-function getCategory(shop_id) {
+function getCategory(shop_id,envStore) {
 
   //path 
   let path = "/api/v2/product/get_category";
@@ -377,17 +467,19 @@ function getCategory(shop_id) {
   param.shop_id = shop_id;
 
   //required
-  param.language = "en / id"
+  param.language = "id"
 
   return hitApi(
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 
 
-function getAttribute(shop_id,language,category_id) {
+function getAttribute(shop_id,language,category_id,envStore) {
 
   //path 
   let path = "/v2/product/get_attributes";
@@ -401,34 +493,37 @@ function getAttribute(shop_id,language,category_id) {
     'get', //method
     path, //path 
     param,//query
+    null
+    ,envStore
   );
 }
 
 
-function getSingleSettlement(shop_id,order_sn) {
+function getSingleSettlement(shop_id,order_sn,envStore) {
 
   //path 
-  let path = "/v2/payment/get_escrow_detail";
+  let path = "/api/v2/payment/get_escrow_detail";
   let param = {};
   let body = {};
   param.shop_id = shop_id;
-  if(order_sn)body.order_sn=order_sn
+  if(order_sn)param.order_sn=order_sn
 
   return hitApi(
     'get', //method
     path, //path 
     param,//qu
-    body
+    body,
+    envStore
   );
 }
 
-function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50,page_no=0) {
+function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50,page_no=0,envStore) {
 
   //path 
-  let path = "/v2/payment/get_escrow_detail";
+  let path = "/api/v2/payment/get_escrow_list";
   let param = {};
   let body = {};
-  param.shop_id = shop_id;
+  body.shop_id = shop_id;
   if(release_time_from)body.release_time_from=release_time_from
   if(release_time_to)body.release_time_to=release_time_to
   body.page_size=page_size
@@ -437,26 +532,48 @@ function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50
   return hitApi(
     'get', //method
     path, //path 
-    param,//qu
-    body
+    body,//qu
+    null,
+    envStore
   );
 }
 
-function getLogistic(shop_id) {
+function getLogistic(shop_id,envStore) {
 
   //path 
-  let path = "/v2/logistics/get_channel_list";
+  let path = "/api/v2/logistics/get_channel_list";
   let param = {};
   param.shop_id = shop_id;
   return hitApi(
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
+  );
+}
+
+function getBrands(shop_id,category_id,language,page_size=50,offset=0,envStore) {
+  //path 
+  let path = "/api/v2/product/get_brand_list";
+  let param = {};
+  param.shop_id = shop_id;
+  param.status = 1;
+  if(category_id)param.category_id = category_id;
+  if(page_size)param.page_size = page_size;
+  if(language)param.language = language;
+  param.offset = offset;
+  return hitApi(
+    'get', //method
+    path, //path 
+    param,//query
+    null
+    ,envStore
   );
 }
 
 
-function getReturns(shop_id,page_no,page_size,create_time_from,create_time_to) {
+function getReturns(shop_id,page_no=0,page_size=50,create_time_from,create_time_to,envStore) {
 
   //path 
   let path = "/api/v2/returns/get_return_list";
@@ -469,12 +586,14 @@ function getReturns(shop_id,page_no,page_size,create_time_from,create_time_to) {
   return hitApi(
     'get', //method
     path, //path 
-    param,//query
+    param//query
+    ,null
+    ,envStore
   );
 }
 
 
-function getReturnDetail(shop_id,return_sn) {
+function getReturnDetail(shop_id,return_sn,envStore) {
 
   //path 
   let path = "/api/v2/returns/get_return_detail";
@@ -485,11 +604,13 @@ function getReturnDetail(shop_id,return_sn) {
   return hitApi(
     'get', //method
     path, //path 
-    param,//query
+    param//query
+    ,null
+    ,envStore
   );
 }
 
-function confirmReturn(shop_id,return_sn) {
+function confirmReturn(shop_id,return_sn,envStore) {
   //path 
   let path = "/api/v2/returns/confirm";
   let param = {};
@@ -502,11 +623,12 @@ function confirmReturn(shop_id,return_sn) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
 
-function disputeReturn(shop_id,return_sn) {
+function disputeReturn(shop_id,return_sn,email,dispute_reason,dispute_text_reason,image,envStore) {
   //path 
   let path = "/api/v2/returns/dispute";
   let param = {};
@@ -523,6 +645,7 @@ function disputeReturn(shop_id,return_sn) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
@@ -535,7 +658,7 @@ function disputeReturn(shop_id,return_sn) {
 //             "comment": "Your smile is the direction of our efforts, welcome to your next visit！"
 //         }
 //     ]
-function postProductDiscussion(shop_id,comment_id,message) {
+function postProductDiscussion(shop_id,comment_id,message,envStore) {
   //path 
   let path = "/api/v2/product/reply_comment";
   let param = {};
@@ -553,13 +676,14 @@ function postProductDiscussion(shop_id,comment_id,message) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
 
 function createProduct(shop_id, original_price , description,weight,item_name,item_status,dimension
   ,normal_stock ,logistic_info ,attribute_list,category_id ,image ,pre_order,item_sku,condition,wholesale,video_upload_id,brand,item_dangerous
-  ,tax_info,complaint_policy) {
+  ,tax_info,complaint_policy,envStore) {
   //path 
   let path = "/api/v2/product/add_item"
   let param = {};
@@ -595,13 +719,14 @@ function createProduct(shop_id, original_price , description,weight,item_name,it
     'post', //method
     path, //path 
     param,//query
-    body//body
+    body,//body,
+    envStore
   );
 }
 
 function updateProduct(shop_id, item_id , description,weight,item_name,item_status,dimension
    ,logistic_info ,attribute_list,category_id ,image ,pre_order,item_sku,condition,wholesale,video_upload_id,brand,item_dangerous
-  ,tax_info,complaint_policy) {
+  ,tax_info,complaint_policy,envStore) {
   //path 
   let path = "/api/v2/product/update_item"
   let param = {};
@@ -636,12 +761,13 @@ function updateProduct(shop_id, item_id , description,weight,item_name,item_stat
     'post', //method
     path, //path 
     param,//query
-    body//body
+    body//body,
+    ,envStore
   );
 }
 
 
-function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id) {
+function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id,envStore) {
   let item_list=[
     item_id=item_id,
     model_id=model_id
@@ -662,11 +788,12 @@ function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
 
-function buyerCancel(shop_id,order_sn,operation) {
+function buyerCancel(shop_id,order_sn,operation,envStore) {
   let responseData = {};
   responseData.marketplace = "shopee"
   responseData.timestamp = new Date().getTime();
@@ -690,10 +817,11 @@ function buyerCancel(shop_id,order_sn,operation) {
     path, //path 
     param,//query
     body//body
+    ,envStore
   );
 }
 
-function getShopInfo(shop_id) {
+function getShopInfo(shop_id,envStore) {
 
   //path 
   let path = "/api/v1/shop/get";
@@ -703,10 +831,12 @@ function getShopInfo(shop_id) {
     'get', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 
-function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name) {
+function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name,envStore) {
 
   //path 
   let path = "/api/v1/shop/update";
@@ -723,9 +853,11 @@ function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_m
     'post', //method
     path, //path 
     param,//query
+    null,
+    envStore
   );
 }
 
 
 
-module.exports = {getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {getRefreshToken,getCode,getToken,getBrands,getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

@@ -130,9 +130,9 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
   let params = {};
   let body = {};
   //required
-  if (order_id) params.order_id = order_id
-  params.fs_id = fs_id
-  if (reason_code) body.reason_code = reason_code
+  // if (order_id) params.order_id = order_id
+  // params.fs_id = fs_id
+  if (reason_code) body.reason_code = Number(reason_code)
   if (reason) body.reason = reason
 
 
@@ -141,7 +141,7 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
   if (shop_close_note) body.shop_close_note = shop_close_note
   if (empty_products) body.empty_products = empty_products
 
-  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/nack`, params);
+  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/nack`, params,body);
 }
 
 
@@ -149,6 +149,7 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
 //order id required
 //fs_id  required
 function orderAccept(order_id) {
+  let params = {};
   if (order_id) params.order_id = order_id
   params.fs_id = fs_id
   return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/ack`);

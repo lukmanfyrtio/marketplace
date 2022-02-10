@@ -73,58 +73,10 @@ router.post('/product/create', async function (req, res) {
 
     const selection = body.selection
     const logistics = body.logistics
-    if (logistics !== null && logistics !== undefined) {
-        if (logistics.length !== 0) {
-            logistics.forEach(element => {
-                if (element.logistic_id === null && element.logistic_id === undefined) {
-                    response.code = 400;
-                    response.message = "logistic_id is required in logistics field";
-                } else if (element.enabled === null && element.enabled === undefined) {
-                    response.code = 400;
-                    response.message = "enabled is required in logistics field";
-                } else if (element.shipping_fee === null && element.shipping_fee === undefined) {
-                    response.code = 400;
-                    response.message = "shipping_fee is required in logistics field";
-                } else if (element.size_id === null && element.size_id === undefined) {
-                    response.code = 400;
-                    response.message = "size_id is required in logistics field";
-                } else if (element.is_free === null && element.is_free === undefined) {
-                    response.code = 400;
-                    response.message = "is_free is required in logistics field";
-                }
-            });
-        }
-    }
 
     const attributes = body.attributes
-    if (attributes !== null && attributes !== undefined) {
-        if (attributes.length !== 0) {
-            attributes.forEach(element => {
-                if (element.attributes_id === null && element.attributes_id === undefined) {
-                    response.code = 400;
-                    response.message = "attributes_id is required in attributes field";
-                } else if (element.value !== null && element.value !== undefined && element.value.length == 0) {
-                    response.code = 400;
-                    response.message = "value is required in attributes field";
-                }
-            });
-        }
-    }
 
     const attributes_sku = body.attributes_sku
-    if (attributes_sku !== null && attributes_sku !== undefined) {
-        if (attributes_sku.length !== 0) {
-            attributes_sku.forEach(element => {
-                if (element.attributes_id === null && element.attributes_id === undefined) {
-                    response.code = 400;
-                    response.message = "attributes_id is required in attributes_sku field";
-                } else if (element.value === null && element.value === undefined) {
-                    response.code = 400;
-                    response.message = "value is required in attributes_sku field";
-                }
-            });
-        }
-    }
 
     const length = body.length
     const width = body.width
@@ -132,25 +84,17 @@ router.post('/product/create', async function (req, res) {
     const size_chart = body.size_chart
     const insta_flagselection = body.insta_flag
     const sla = body.sla
-    if (sla !== null && sla !== undefined) {
-        if (sla.type !== null && sla.type !== undefined) {
-            response.code = 400;
-            response.message = "type is required in sla field";
-        } else if (sla.value !== null && sla.value !== undefined) {
-            response.code = 400;
-            response.message = "value is required in sla field";
-        }
-    }
+
     const max_quantity = body.max_quantity
     const brand = body.brand
+    const brand_id = body.brand_id
+
 
 
     const item_dangerous = body.dangerous_goods_level
     const special_price = body.special_price
     const pickup_point_code = body.pickup_point_code
     const product_type = body.product_type
-
-
 
 
     if (marketplace === null || marketplace === undefined || marketplace === '') {
@@ -300,8 +244,7 @@ router.post('/product/create', async function (req, res) {
                         preorder_time = time_unit == 'day' ? 'DAY' : 'WEEK';
 
                         if (time_unit !== 'day' && time_unit !== 'week') response.message = 'preorder.time_unit is only day or week, ';
-                    }
-                    else {
+                    } else {
                         $preorder_time = 'DAY';
                         preorderTokopedia = {
                             is_active: true,
@@ -309,13 +252,9 @@ router.post('/product/create', async function (req, res) {
                             time_unit: preorder_time
                         }
                     }
+                } else {
+                    response.message = 'Include field preorder.duration if preorder is defined';
                 }
-                else {
-                    response.message = 'Field preorder.duration shall be integer, ';
-                }
-            }
-            else {
-                response.message = 'Include field preorder.duration if preorder is defined';
             }
 
             let videos;
@@ -422,8 +361,7 @@ router.post('/product/create', async function (req, res) {
                             array_variant.push(variant);
                         }
                     });
-                    
-                    console.log(array_variant);
+
                     if (selection) {
                         variantTokped = {
                             products: array_variant,
@@ -507,192 +445,364 @@ router.post('/product/create', async function (req, res) {
             return;
 
         } else if (marketplace == "shopee") {
-            let arrayImage = [];
-            images.forEach(element => {
-                arrayImage.push(element.url)
-            });
-            let imageReq = {
-                image_id_list: arrayImage
-            };
-            let original_price = Number(price)
-            let item_name = product_name
-            let normal_stock = Number(stock)
+            response.code = 200;
+            let brandBody;
+            let item_sku = sku;
+            let original_price = Number(price)//required
+            let descriptionShopee = description// required
+            let item_name = product_name// required
+            let normal_stock = Number(stock)//required
             let logistic_info = logistics
-            let item_status = status
             let wholesales;
+            let preorder_shopee;
 
+            let array_images = [];
+            let attribute_list = []
+            images.forEach(element => {
+                array_images.push(element.url);
+            });
 
-            if (logistics) {
-                response.message = "Field logistics in body is required,";
-            } else if (item_dangerous) {
-                if (Number.isInteger(item_dangerous)) {
-                    //set item_dangerous
-                    body.item_dangerous = item_dangerous
-                } else {
+            let imageReq = {
+                image_id_list: array_images
+            };//Required
+
+            let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
+            let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
+
+            if (item_dangerous) {
+                if (!Number.isInteger(item_dangerous)) {
                     response.message = "Field item_dangerous shall be integer";
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
                 }
-            } else if (wholesale_qty || wholesale_price) {
-                if (wholesale_qty) {
-                    if (wholesale_price) {
-                        if (Number.isInteger(wholesale_qty)) {
-                            if (Number.isInteger(wholesale_price)) {
-                                wholesales = [{
-                                    "min_count": Number(wholesale_qty),
-                                    "max_count": Number(wholesale_qty),
-                                    "unit_price": Number(wholesale_price),
-                                }];
-                            } else {
-                                esponse.message = "Field wholesale_price shall be integer,";
-                            }
-                        } else {
-                            esponse.message = "Field wholesale_qty shall be integer,";
-                        }
-                    } else {
-                        response.message = "Include field wholesale_price if wholesale_qty is defined,";
+            }
+
+
+            if (preorder) {
+                if (preorder.duration) {
+                    preorder_shopee={
+                        is_pre_order:true,
+                        days_to_ship:preorder.duration
                     }
                 } else {
-                    response.message = "Include field wholesale_qty if wholesale_price is defined,";
+                    response.message = 'Include field preorder.duration if preorder is defined';
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
+                }
+            }
+
+        if (wholesale_qty || wholesale_price) {
+            if (wholesale_qty) {
+                if (wholesale_price) {
+                    if (Number.isInteger(wholesale_qty)) {
+                        if (Number.isInteger(wholesale_price)) {
+                            wholesales = [{
+                                "min_count": Number(wholesale_qty),
+                                "max_count": Number(wholesale_qty),
+                                "unit_price": Number(wholesale_price),
+                            }];
+                        } else {
+                            response.message = "Field wholesale_price shall be integer,";
+                            response.code = 400;
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                    } else {
+                        response.message = "Field wholesale_qty shall be integer,";
+                        response.code = 400;
+                        res.status(response.code).send(response);
+                        return;
+                    }
+                } else {
+                    response.message = "Include field wholesale_price if wholesale_qty is defined,";
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
                 }
             } else {
-
-                let array_images = [];
-                images.forEach(element => {
-                    array_images.push(element.url);
-                });
-                let imageReq = {
-                    image_id_list: array_images
-                }
-
-                let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
-                let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
-                let hitAPI = await apiShoppe.createProduct(shop_id, price, description, weight, product_name, statusShopee, dimension
-                    , stock, logistic_info, null, category_id, imageReq, preorder, sku, kondisiShopee, wholesales, url_video, brand, Number(item_dangerous) == 1 ? 1 : 0
-                    , null, null)
-                res.status(hitAPI.code).send(hitAPI);
+                response.message = "Include field wholesale_qty if wholesale_price is defined,";
+                response.code = 400;
+                res.status(response.code).send(response);
                 return;
             }
-        } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.createProductV3(shop_id, "username", attributes, brand, category_id, description, dimension, images, logistics, product_name, brand, pickup_point_code
-                , null, preorder, attributes, product_type, url_video)
-            res.status(hitAPI.code).send(hitAPI);
-            return;
-        } else if (marketplace == "lazada") {
-            let new_weight;
-            if (unit_weight !== 'KG') new_weight = weight / 1000
-            response.code = 400
-            if (brand === null || brand === undefined) {
-                response.message = "Field brand in body is required,";
+        }
+        if (brand) {
+            if (brand_id !== null && brand !== undefined) {
+                brandBody = {
+                    brand_id: brand_id,
+                    original_brand_name: brand
+                }
             } else {
-                let array_variant = [];
-                if (variant) {
-                    if (!Array.isArray(variant)) {
+                response.message = "Field brand_id if brand_id is defined";
+                response.code = 400;
+                res.status(response.code).send(response);
+                return;
+            }
+        }
+
+        if (attributes) {
+            if (!Array.isArray(attributes)) {
+                response.code = 400;
+                response.message = `Field variant in request body shall be array object`;
+                res.status(response.code).send(response);
+                return;
+            } else if (attributes.length === 0) {
+                response.code = 400;
+                response.message = `Field variant cant be empty`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                for await (const element of attributes) {
+                    if (element.attribute_id === null || element.attribute_id === undefined) {
+                        response.code = 400;
+                        response.message = "attribute_id is required in attributes field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (!Array.isArray(element.value)) {
                         response.code = 400;
                         response.message = `Field variant in request body shall be array object`;
                         res.status(response.code).send(response);
                         return;
-                    } else if (variant.length === 0) {
+                    } else if (element.value.length === 0) {
                         response.code = 400;
-                        response.message = `Field variant cant be empty`;
+                        response.message = `Field value cant be empty in attributes field"`;
                         res.status(response.code).send(response);
                         return;
                     } else {
-                        variant.forEach(element => {
-                            let variantLazada = `<Sku>`;
-                            if (element.sku == null || element.sku == undefined) {
-                                response.message = "Field sku in variant object is required,";
-                                res.status(response.code).send(response);
-                                return;
-                            } else if (element.price == null || element.price == undefined) {
-                                response.message = "Field price in variant object is required,";
-                                res.status(response.code).send(response);
-                                return;
-                            } else if (element.stock == null || element.stock == undefined) {
-                                response.message = "Field stock in variant object is required,";
-                                res.status(response.code).send(response);
-                                return;
-                            } else if (element.length == null || element.length == undefined) {
-                                response.message = "Field length in variant object is required,";
-                                res.status(response.code).send(response);
-                                return;
-                            } else if (element.weight == null || element.weight == undefined) {
-                                response.message = "Field weight in variant object is required,";
-                                res.status(response.code).send(response);
-                                return;
-                            } else if (element.height == null || element.weight == undefined) {
-                                response.message = "Field height in variant object is required,";
+                        let attributes_value = [];
+                        for await (const element of element.value) {
+                            let attr_value = {};
+                            if (element.id === null || element.id === undefined) {
+                                response.code = 400;
+                                response.message = `Field value.[id] cant be empty in attributes field"`;
                                 res.status(response.code).send(response);
                                 return;
                             } else {
-                                let sellerSku = element.sku;
-                                if (sellerSku) variantLazada += `<SellerSku>${sellerSku}</SellerSku>`
+                                attr_value.value_id = element.id;
+                                if (element.value_name) attr_value.original_value_name = element.value_name;
+                                if (element.unit_value) attr_value.value_unit = element.unit_value;
 
-                                let color_family = element.color_family;
-                                if (color_family) variantLazada += `<color_family>${color_family}</color_family>`
-
-                                let size = element.size;
-                                if (size) variantLazada += `<size>${size}</size>`
-
-                                let stock = element.stock;
-                                if (stock) variantLazada += `<quantity>${stock}</quantity>`
-
-                                let price = element.price;
-                                if (price) variantLazada += `<price>${price}</price>`
-
-                                let length = element.length;
-                                if (length) variantLazada += `<package_length>${length}</package_length>`
-
-                                //height
-                                let height = element.height;
-                                if (height) variantLazada += `<package_height>${height}</package_height>`
-
-                                //weight
-                                let weight;
-                                if (unit_weight !== 'KG') weight = element.weight / 1000
-                                if (weight) variantLazada += `<package_weight>${weight}</package_weight>`
-
-                                let width = element.width;
-                                if (width) variantLazada += `<package_width>${width}</package_width>`
-
-
-                                if (element.images) {
-                                    variantLazada += `<Images>`
-                                    element.images.forEach(element => {
-                                        if (element.url) {
-                                            variantLazada += `<Image>${element.url}</Image>`
-                                        }
-                                    });
-                                    variantLazada += `</Images>`
-                                }
-
-                                variantLazada += `</Sku>`
-                                array_variant.push(variantLazada);
+                                attributes_value.push(attr_value);
                             }
-                        });
-                    }
-                } else {
-                    response.message = "Field variant on body is required on lazada";
-                    res.status(response.code).send(response);
-                    return;
-                }
+                        }
+                        attribute_list.push(
+                            {
+                                attribute_id: element.attribute_id,
+                                attribute_value_list: attributes_value
+                            }
+                        )
 
-                let array_images_product = [];
-                images.forEach(element => {
-                    let imageProduct;
-                    if (element.url) {
-                        imageProduct = `<Image>${element.url}</Image>`
-                        array_images_product.push(imageProduct);
+                    }
+
+                }
+            }
+        }
+
+        if (logistics) {
+            if (!Array.isArray(logistics)) {
+                response.code = 400;
+                response.message = `Field variant in request body shall be array object`;
+                res.status(response.code).send(response);
+                return;
+            } else if (logistics.length === 0) {
+                response.code = 400;
+                response.message = `Field variant cant be empty`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                logistics.forEach(element => {
+                    if (element.logistic_id === null || element.logistic_id === undefined) {
+                        response.code = 400;
+                        response.message = "logistic_id is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.enabled === null || element.enabled === undefined) {
+                        response.code = 400;
+                        response.message = "enabled is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.shipping_fee === null || element.shipping_fee === undefined) {
+                        response.code = 400;
+                        response.message = "shipping_fee is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.size_id === null || element.size_id === undefined) {
+                        response.code = 400;
+                        response.message = "size_id is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.is_free === null || element.is_free === undefined) {
+                        response.code = 400;
+                        response.message = "is_free is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
                     }
                 });
-                let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant.join(''));
-                res.status(hitAPI.code).send(hitAPI);
+            }
+        } else {
+            response.code = 400;
+            response.message = `Field logistics is required on shopee`;
+            res.status(response.code).send(response);
+            return;
+        }
+
+        if (height || length || width) {
+            if (!height) {
+                response.code = 400;
+                response.message = `Field height if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else if (!length) {
+                response.code = 400;
+                response.message = `Field length if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else if (!width) {
+                response.code = 400;
+                response.message = `Field width if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                dimension = {
+                    package_height: height,
+                    package_length: length,
+                    package_width: width
+                }
+            }
+        }
+
+        if (response.code === 200) {
+            let hitAPI = await apiShoppe.createProduct(shop_id, original_price, descriptionShopee, weight, item_name, statusShopee, dimension
+                , normal_stock, logistic_info, attribute_list, category_id, imageReq, preorder_shopee, item_sku, kondisiShopee, wholesales, url_video, brandBody, Number(item_dangerous) == 1 ? 1 : 0
+                , null, null, req.envStore)
+            res.status(hitAPI.code).send(hitAPI);
+        }
+        return;
+    } else if (marketplace == "blibli") {
+        let hitAPI = await apiBlibli.createProductV3(shop_id, "username", attributes, brand, category_id, description, dimension, images, logistics, product_name, brand, pickup_point_code
+            , null, preorder, attributes, product_type, url_video)
+        res.status(hitAPI.code).send(hitAPI);
+        return;
+    } else if (marketplace == "lazada") {
+        let new_weight;
+        if (unit_weight !== 'KG') new_weight = weight / 1000
+        response.code = 400
+        if (brand === null || brand === undefined) {
+            response.message = "Field brand in body is required,";
+        } else {
+            let array_variant = [];
+            if (variant) {
+                if (!Array.isArray(variant)) {
+                    response.code = 400;
+                    response.message = `Field variant in request body shall be array object`;
+                    res.status(response.code).send(response);
+                    return;
+                } else if (variant.length === 0) {
+                    response.code = 400;
+                    response.message = `Field variant cant be empty`;
+                    res.status(response.code).send(response);
+                    return;
+                } else {
+                    variant.forEach(element => {
+                        let variantLazada = `<Sku>`;
+                        if (element.sku == null || element.sku == undefined) {
+                            response.message = "Field sku in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.price == null || element.price == undefined) {
+                            response.message = "Field price in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.stock == null || element.stock == undefined) {
+                            response.message = "Field stock in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.length == null || element.length == undefined) {
+                            response.message = "Field length in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.weight == null || element.weight == undefined) {
+                            response.message = "Field weight in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else if (element.height == null || element.weight == undefined) {
+                            response.message = "Field height in variant object is required,";
+                            res.status(response.code).send(response);
+                            return;
+                        } else {
+                            let sellerSku = element.sku;
+                            if (sellerSku) variantLazada += `<SellerSku>${sellerSku}</SellerSku>`
+
+                            let color_family = element.color_family;
+                            if (color_family) variantLazada += `<color_family>${color_family}</color_family>`
+
+                            let size = element.size;
+                            if (size) variantLazada += `<size>${size}</size>`
+
+                            let stock = element.stock;
+                            if (stock) variantLazada += `<quantity>${stock}</quantity>`
+
+                            let price = element.price;
+                            if (price) variantLazada += `<price>${price}</price>`
+
+                            let length = element.length;
+                            if (length) variantLazada += `<package_length>${length}</package_length>`
+
+                            //height
+                            let height = element.height;
+                            if (height) variantLazada += `<package_height>${height}</package_height>`
+
+                            //weight
+                            let weight;
+                            if (unit_weight !== 'KG') weight = element.weight / 1000
+                            if (weight) variantLazada += `<package_weight>${weight}</package_weight>`
+
+                            let width = element.width;
+                            if (width) variantLazada += `<package_width>${width}</package_width>`
+
+
+                            if (element.images) {
+                                variantLazada += `<Images>`
+                                element.images.forEach(element => {
+                                    if (element.url) {
+                                        variantLazada += `<Image>${element.url}</Image>`
+                                    }
+                                });
+                                variantLazada += `</Images>`
+                            }
+
+                            variantLazada += `</Sku>`
+                            array_variant.push(variantLazada);
+                        }
+                    });
+                }
+            } else {
+                response.message = "Field variant on body is required on lazada";
+                res.status(response.code).send(response);
                 return;
             }
-            res.status(response.code).send(response);
-            return
+
+            let array_images_product = [];
+            images.forEach(element => {
+                let imageProduct;
+                if (element.url) {
+                    imageProduct = `<Image>${element.url}</Image>`
+                    array_images_product.push(imageProduct);
+                }
+            });
+            let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant.join(''));
+            res.status(hitAPI.code).send(hitAPI);
+            return;
         }
+        res.status(response.code).send(response);
+        return
     }
+}
     res.status(response.code).send(response);
 });
+
 
 
 //update product
@@ -844,7 +954,7 @@ router.post('/product/update', async function (req, res) {
     const brand = body.brand
 
 
-    const dangerous_goods_level = body.dangerous_goods_level
+    const item_dangerous = body.dangerous_goods_level
     const special_price = body.special_price
     const pickup_point_code = body.pickup_point_code
     const product_type = body.product_type
@@ -864,77 +974,79 @@ router.post('/product/update', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Field product_id in request body required"
-    } else if (sku === null || sku === undefined) {
-        response.code = 400
-        response.message = "Field sku in request body required"
-    } else if (product_name === null || product_name === undefined) {
-        response.code = 400
-        response.message = "Field product_name in request body required"
-    } else if (description === null || description === undefined) {
-        response.code = 400
-        response.message = "Field description in request body required"
-    } else if (status === null || status === undefined) {
-        response.code = 400
-        response.message = "Field status in request body required"
-    } else if (status !== 'active' && status !== 'inactive') {
-        response.code = 400
-        response.message = "Field status is only active or inactive"
-    } else if (price === null || price === undefined) {
-        response.code = 400
-        response.message = "Field price in request body required"
-    } else if (!Number.isInteger(price)) {
-        response.code = 400
-        response.message = "Field price is should be integer"
-    } else if (Number(price) <= 100 || Number(price) >= 100000000) {
-        response.code = 400
-        response.message = "The possible price between 100 to 100.000.000"
-    } else if (stock === null || stock === undefined) {
-        response.code = 400
-        response.message = "Field stock in request body required"
-    } else if (!Number.isInteger(stock)) {
-        response.code = 400
-        response.message = "Field stock is should be integer"
-    } else if (Number(stock) <= 1 || Number(stock) >= 1000) {
-        response.code = 400
-        response.message = "The possible stock between 1 to 1.000"
-    } else if (images === null || images === undefined) {
-        response.code = 400
-        response.message = "Field images in request body required"
-    } else if (!Array.isArray(images)) {
-        response.code = 400;
-        response.message = `Field images in request body shall be array object example => images:[{url: URLString}]`;
-    } else if (images === undefined || images.length == 0) {
-        response.code = 400;
-        response.message = `Field images in request body should not be empty`;
-    } else if (minimum_order === null || minimum_order === undefined) {
-        response.code = 400
-        response.message = "Field minimum_order in request body required"
-    }
-    else if (!Number.isInteger(minimum_order)) {
-        response.code = 400
-        response.message = "Field minimum_order is should be integer"
-    } else if (weight === null || weight === undefined) {
-        response.code = 400
-        response.message = "Field weight in request body required"
-    } else if (!isFloat(weight) && !Number.isInteger(weight)) {
-        response.code = 400
-        response.message = "Field weight is is should be float"
-    } else if (unit_weight === null || unit_weight === undefined) {
-        response.code = 400
-        response.message = "Field unit_weight in request body required"
-    } else if (unit_weight !== "kg" && marketplace !== "gr") {
-        response.code = 400
-        response.message = "Field unit_weight is only kg or gr"
-    } else if (condition === null || condition === undefined) {
-        response.code = 400
-        response.message = "Field condition in request body required"
-    } else if (condition !== "new" && condition !== "used") {
-        response.code = 400
-        response.message = "Field condition is only new or used"
-    } else if (category_id === null || category_id === undefined) {
-        response.code = 400
-        response.message = "Field category_id in request body required"
-    }
+    } 
+    // else if (sku === null || sku === undefined) {
+    //     response.code = 400
+    //     response.message = "Field sku in request body required"
+    // } 
+    // else if (product_name === null || product_name === undefined) {
+    //     response.code = 400
+    //     response.message = "Field product_name in request body required"
+    // } else if (description === null || description === undefined) {
+    //     response.code = 400
+    //     response.message = "Field description in request body required"
+    // } else if (status === null || status === undefined) {
+    //     response.code = 400
+    //     response.message = "Field status in request body required"
+    // } else if (status !== 'active' && status !== 'inactive') {
+    //     response.code = 400
+    //     response.message = "Field status is only active or inactive"
+    // } else if (price === null || price === undefined) {
+    //     response.code = 400
+    //     response.message = "Field price in request body required"
+    // } else if (!Number.isInteger(price)) {
+    //     response.code = 400
+    //     response.message = "Field price is should be integer"
+    // } else if (Number(price) <= 100 || Number(price) >= 100000000) {
+    //     response.code = 400
+    //     response.message = "The possible price between 100 to 100.000.000"
+    // } else if (stock === null || stock === undefined) {
+    //     response.code = 400
+    //     response.message = "Field stock in request body required"
+    // } else if (!Number.isInteger(stock)) {
+    //     response.code = 400
+    //     response.message = "Field stock is should be integer"
+    // } else if (Number(stock) <= 1 || Number(stock) >= 1000) {
+    //     response.code = 400
+    //     response.message = "The possible stock between 1 to 1.000"
+    // } else if (images === null || images === undefined) {
+    //     response.code = 400
+    //     response.message = "Field images in request body required"
+    // } else if (!Array.isArray(images)) {
+    //     response.code = 400;
+    //     response.message = `Field images in request body shall be array object example => images:[{url: URLString}]`;
+    // } else if (images === undefined || images.length == 0) {
+    //     response.code = 400;
+    //     response.message = `Field images in request body should not be empty`;
+    // } else if (minimum_order === null || minimum_order === undefined) {
+    //     response.code = 400
+    //     response.message = "Field minimum_order in request body required"
+    // }
+    // else if (!Number.isInteger(minimum_order)) {
+    //     response.code = 400
+    //     response.message = "Field minimum_order is should be integer"
+    // } else if (weight === null || weight === undefined) {
+    //     response.code = 400
+    //     response.message = "Field weight in request body required"
+    // } else if (!isFloat(weight) && !Number.isInteger(weight)) {
+    //     response.code = 400
+    //     response.message = "Field weight is is should be float"
+    // } else if (unit_weight === null || unit_weight === undefined) {
+    //     response.code = 400
+    //     response.message = "Field unit_weight in request body required"
+    // } else if (unit_weight !== "kg" && marketplace !== "gr") {
+    //     response.code = 400
+    //     response.message = "Field unit_weight is only kg or gr"
+    // } else if (condition === null || condition === undefined) {
+    //     response.code = 400
+    //     response.message = "Field condition in request body required"
+    // } else if (condition !== "new" && condition !== "used") {
+    //     response.code = 400
+    //     response.message = "Field condition is only new or used"
+    // } else if (category_id === null || category_id === undefined) {
+    //     response.code = 400
+    //     response.message = "Field category_id in request body required"
+    // }
 
     else {
         if (marketplace == "tokopedia") {
@@ -1207,69 +1319,238 @@ router.post('/product/update', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let arrayImage = [];
-            images.forEach(element => {
-                arrayImage.push(element.url)
-            });
-            let imageReq = {
-                image_id_list: arrayImage
-            };
-            let original_price = Number(price)
-            let item_name = product_name
-            let normal_stock = Number(stock)
+            response.code = 200;
+            let brandBody;
+            let item_sku = sku;
+            // let original_price = Number(price)//required
+            let descriptionShopee = description// required
+            let item_name = product_name// required
+            // let normal_stock = Number(stock)
             let logistic_info = logistics
-            let item_status = status
             let wholesales;
+            let preorder_shopee;
 
-
-            if (logistics) {
-                response.message = "Field logistics in body is required,";
-            } else if (item_dangerous) {
-                if (Number.isInteger(item_dangerous)) {
-                    //set item_dangerous
-                    body.item_dangerous = item_dangerous
-                } else {
-                    response.message = "Field item_dangerous shall be integer";
-                }
-            } else if (wholesale_qty || wholesale_price) {
-                if (wholesale_qty) {
-                    if (wholesale_price) {
-                        if (Number.teger(wholesale_qty)) {
-                            if (Number.isInteger(wholesale_price)) {
-                                wholesales = [{
-                                    "min_count": Number(wholesale_qty),
-                                    "max_count": Number(wholesale_qty),
-                                    "unit_price": Number(wholesale_price),
-                                }];
-                            } else {
-                                esponse.message = "Field wholesale_price shall be integer,";
-                            }
-                        } else {
-                            esponse.message = "Field wholesale_qty shall be integer,";
-                        }
-                    } else {
-                        response.message = "Include field wholesale_price if wholesale_qty is defined,";
-                    }
-                } else {
-                    response.message = "Include field wholesale_qty if wholesale_price is defined,";
-                }
-            } else {
-
-                let array_images = [];
+            let array_images = [];
+            let attribute_list = [];
+            let imageReq ;
+            if(images){
                 images.forEach(element => {
                     array_images.push(element.url);
                 });
-                let imageReq = {
+    
+                imageReq = {
                     image_id_list: array_images
-                }
+                };//Required
+            }
 
-                let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
-                let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
-                let hitAPI = await apiShoppe.updateProduct(shop_id, product_id, description, weight, product_name, item_status, dimension, logistics, attributes, category_id, array_images, preorder
-                    , sku, statusShopee, url_video, brand, item_dangerous, null, null)
-                res.status(hitAPI.code).send(hitAPI);
+            let kondisiShopee = condition == 'used' ? 'USED' : 'NEW'
+            let statusShopee = status == 'active' ? 'NORMAL' : 'UNLIST';
+
+            if (item_dangerous) {
+                if (!Number.isInteger(item_dangerous)) {
+                    response.message = "Field item_dangerous shall be integer";
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
+                }
+            }
+
+
+            if (preorder) {
+                if (preorder.duration) {
+                    preorder_shopee={
+                        is_pre_order:true,
+                        days_to_ship:preorder.duration
+                    }
+                } else {
+                    response.message = 'Include field preorder.duration if preorder is defined';
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
+                }
+            }
+
+        if (wholesale_qty || wholesale_price) {
+            if (wholesale_qty) {
+                if (wholesale_price) {
+                    if (Number.isInteger(wholesale_qty)) {
+                        if (Number.isInteger(wholesale_price)) {
+                            wholesales = [{
+                                "min_count": Number(wholesale_qty),
+                                "max_count": Number(wholesale_qty),
+                                "unit_price": Number(wholesale_price),
+                            }];
+                        } else {
+                            response.message = "Field wholesale_price shall be integer,";
+                            response.code = 400;
+                            res.status(response.code).send(response);
+                            return;
+                        }
+                    } else {
+                        response.message = "Field wholesale_qty shall be integer,";
+                        response.code = 400;
+                        res.status(response.code).send(response);
+                        return;
+                    }
+                } else {
+                    response.message = "Include field wholesale_price if wholesale_qty is defined,";
+                    response.code = 400;
+                    res.status(response.code).send(response);
+                    return;
+                }
+            } else {
+                response.message = "Include field wholesale_qty if wholesale_price is defined,";
+                response.code = 400;
+                res.status(response.code).send(response);
                 return;
             }
+        }
+        if (brand) {
+            if (brand_id !== null && brand !== undefined) {
+                brandBody = {
+                    brand_id: brand_id,
+                    original_brand_name: brand
+                }
+            } else {
+                response.message = "Field brand_id if brand_id is defined";
+                response.code = 400;
+                res.status(response.code).send(response);
+                return;
+            }
+        }
+
+        if (attributes) {
+            if (!Array.isArray(attributes)) {
+                response.code = 400;
+                response.message = `Field variant in request body shall be array object`;
+                res.status(response.code).send(response);
+                return;
+            } else if (attributes.length === 0) {
+                response.code = 400;
+                response.message = `Field variant cant be empty`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                for await (const element of attributes) {
+                    if (element.attribute_id === null || element.attribute_id === undefined) {
+                        response.code = 400;
+                        response.message = "attribute_id is required in attributes field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (!Array.isArray(element.value)) {
+                        response.code = 400;
+                        response.message = `Field variant in request body shall be array object`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.value.length === 0) {
+                        response.code = 400;
+                        response.message = `Field value cant be empty in attributes field"`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        let attributes_value = [];
+                        for await (const element of element.value) {
+                            let attr_value = {};
+                            if (element.id === null || element.id === undefined) {
+                                response.code = 400;
+                                response.message = `Field value.[id] cant be empty in attributes field"`;
+                                res.status(response.code).send(response);
+                                return;
+                            } else {
+                                attr_value.value_id = element.id;
+                                if (element.value_name) attr_value.original_value_name = element.value_name;
+                                if (element.unit_value) attr_value.value_unit = element.unit_value;
+
+                                attributes_value.push(attr_value);
+                            }
+                        }
+                        attribute_list.push(
+                            {
+                                attribute_id: element.attribute_id,
+                                attribute_value_list: attributes_value
+                            }
+                        )
+
+                    }
+
+                }
+            }
+        }
+
+        if (logistics) {
+            if (!Array.isArray(logistics)) {
+                response.code = 400;
+                response.message = `Field variant in request body shall be array object`;
+                res.status(response.code).send(response);
+                return;
+            } else if (logistics.length === 0) {
+                response.code = 400;
+                response.message = `Field variant cant be empty`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                logistics.forEach(element => {
+                    if (element.logistic_id === null || element.logistic_id === undefined) {
+                        response.code = 400;
+                        response.message = "logistic_id is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.enabled === null || element.enabled === undefined) {
+                        response.code = 400;
+                        response.message = "enabled is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.shipping_fee === null || element.shipping_fee === undefined) {
+                        response.code = 400;
+                        response.message = "shipping_fee is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.size_id === null || element.size_id === undefined) {
+                        response.code = 400;
+                        response.message = "size_id is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (element.is_free === null || element.is_free === undefined) {
+                        response.code = 400;
+                        response.message = "is_free is required in logistics field";
+                        res.status(response.code).send(response);
+                        return;
+                    }
+                });
+            }
+        }
+
+        if (height || length || width) {
+            if (!height) {
+                response.code = 400;
+                response.message = `Field height if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else if (!length) {
+                response.code = 400;
+                response.message = `Field length if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else if (!width) {
+                response.code = 400;
+                response.message = `Field width if one of the field height,length,width is defined`;
+                res.status(response.code).send(response);
+                return;
+            } else {
+                dimension = {
+                    package_height: height,
+                    package_length: length,
+                    package_width: width
+                }
+            }
+        }
+
+        if (response.code === 200) {
+            let hitAPI = await apiShoppe.updateProduct(shop_id, product_id, descriptionShopee, weight, item_name, statusShopee, dimension, logistic_info, attribute_list, category_id, imageReq, preorder_shopee
+                , item_sku, statusShopee,wholesales, url_video, brandBody, item_dangerous?Number(item_dangerous) == 1 ? 1 : 0:null, null, null,req.envStore)
+            res.status(hitAPI.code).send(hitAPI);
+        }
+        return;
         } else if (marketplace == "blibli") {
             let items = [
                 {
@@ -1337,7 +1618,7 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit);
+            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit, null, null, (req.envStore ? req.envStore : ''));
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -1380,7 +1661,7 @@ router.get('/product', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getSingleProduct(shop_id, [Number(productId)])
+            let hitAPI = await apiShoppe.getSingleProduct(shop_id, [Number(productId)], null, null, req.envStore)
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -1432,7 +1713,7 @@ router.post('/product/update_price', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.updatePrice(shop_id, product_id, new_price);
+            let hitAPI = await apiShoppe.updatePrice(shop_id, Number(product_id), new_price,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -1483,7 +1764,7 @@ router.post('/product/update_stock', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.updateStock(shop_id, product_id, new_stock);
+            let hitAPI = await apiShoppe.updateStock(shop_id, Number(product_id), new_stock,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -1582,8 +1863,10 @@ router.post('/product/update_state', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.updateState(shop_id, state == "active" ? true : false, product_id);
-            res.send(hitAPI);
+            response.code = 400
+            response.message = "still not avalable for shoppe"
+            response.marketplace = "shopee"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.updateState(product_id, shop_id, "username", state == "active" ? true : false);
@@ -1622,7 +1905,7 @@ router.get('/product/category', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getCategory(shop_id);
+            let hitAPI = await apiShoppe.getCategory(shop_id,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -1779,6 +2062,7 @@ router.get('/brands', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
+    const category_id = search.category_id;
 
     const page = search.page;
     const limit = search.limit;
@@ -1787,7 +2071,7 @@ router.get('/brands', async function (req, res) {
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
-    } else if (marketplace !== "blibli" && marketplace !== "lazada") {
+    } else if (marketplace !== "blibli" && marketplace !== "lazada" && marketplace !== "shopee") {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli or lazada"
     } else if (shop_id === null || shop_id === undefined) {
@@ -1796,16 +2080,19 @@ router.get('/brands', async function (req, res) {
     } else {
         if (marketplace == "tokopedia") {
             response.code = 400
-            response.message = "still not avalable for shoppe"
+            response.message = "still not avalable for tokopedia"
             response.marketplace = "shopee"
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            response.code = 400
-            response.message = "still not avalable for shoppe"
-            response.marketplace = "shopee"
-            res.status(response.code).send(response);
-            return;
+            if (category_id === null || category_id === undefined) {
+                response.code = 400
+                response.message = "Parameter category_id is required on shopee"
+            } else {
+                let hitAPI = await apiShoppe.getBrands(shop_id, category_id, 'id', page, limit)
+                res.send(hitAPI);
+                return;
+            }
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.getBrands(shop_id, "username", keyword, page, limit);
             res.send(hitAPI);
@@ -1829,9 +2116,9 @@ router.get('/logistic', async function (req, res) {
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
-    } else if (marketplace !== "shoppe") {
+    } else if (marketplace !== "shopee") {
         response.code = 400
-        response.message = "Parameter marketplace only available for shoppe"
+        response.message = "Parameter marketplace only available for shopee"
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
@@ -1843,7 +2130,7 @@ router.get('/logistic', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getLogistic(shop_id)
+            let hitAPI = await apiShoppe.getLogistic(shop_id,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2437,7 +2724,7 @@ router.get('/product/discussion/list', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, productId, null, page, limit)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, productId, null, page, limit,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2486,7 +2773,7 @@ router.get('/product/discussion', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, null, comment_id, page, limit)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, null, comment_id, page, limit,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2543,7 +2830,7 @@ router.post('/product/discussion/reply', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.postProductDiscussion(shop_id, comment_id, message)
+            let hitAPI = await apiShoppe.postProductDiscussion(shop_id, comment_id, message,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2788,5 +3075,47 @@ router.get('/products_', async function (req, res) {
     }
     res.status(response.code).send(response)
 })
+
+router.get('/generate_auth_link', async function (req, res) {
+    const search = req.query
+
+    res.send(apiShoppe.getCode(req.envStore));
+});
+
+
+router.get('/generate_code', async function (req, res) {
+    const search = req.query
+    const shop_id = search.shop_id
+    const code = search.code
+    if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+        res.send(response);
+    } else if (code === null || code === undefined) {
+        response.code = 400
+        response.message = "Parameter code is required"
+        res.send(response);
+    } else {
+        res.send(await apiShoppe.getToken(shop_id, null, code, req.envStore));
+    }
+});
+
+
+router.get('/generate_refresh', async function (req, res) {
+    const search = req.query
+    const shop_id = search.shop_id
+    const refresh_token = search.refresh_token
+    if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+        res.send(response);
+    } else if (refresh_token === null || refresh_token === undefined) {
+        response.code = 400
+        response.message = "Parameter refresh_token is required"
+        res.send(response);
+    } else {
+        res.send(await apiShoppe.getRefreshToken(shop_id, null, refresh_token, req.envStore));
+    }
+});
 
 module.exports = router;

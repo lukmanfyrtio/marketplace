@@ -56,7 +56,7 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllSettlement(shop_id,unixTms(start_time), unixTms(end_time),page,limit)
+            let hitAPI = await apiShoppe.getAllSettlement(shop_id,unixTms(start_time), unixTms(end_time),page,limit,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -98,7 +98,7 @@ router.get('/settlement', async function (req, res) {
             response.message = "This service is not yet available for tokopedia marketplace"
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getSingleSettlement(shop_id,orderid);
+            let hitAPI = await apiShoppe.getSingleSettlement(shop_id,orderid,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {

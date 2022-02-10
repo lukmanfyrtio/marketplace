@@ -47,6 +47,7 @@ async function getEnvStores() {
 
 // env selalu dikeluarkan di tiap hit
 app.use(function(req, res, next){
+  getEnvStores()
   // req.envStore = Object.assign([],
   //   process.env.mpstores ?
   //     jsonP(process.env.mpstores).filter(store => {
