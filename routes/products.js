@@ -1449,17 +1449,17 @@ router.post('/product/update', async function (req, res) {
                         return;
                     } else {
                         let attributes_value = [];
-                        for await (const element of element.value) {
+                        for await (const elementVal of element.value) {
                             let attr_value = {};
-                            if (element.id === null || element.id === undefined) {
+                            if (elementVal.id === null || elementVal.id === undefined) {
                                 response.code = 400;
                                 response.message = `Field value.[id] cant be empty in attributes field"`;
                                 res.status(response.code).send(response);
                                 return;
                             } else {
-                                attr_value.value_id = element.id;
-                                if (element.value_name) attr_value.original_value_name = element.value_name;
-                                if (element.unit_value) attr_value.value_unit = element.unit_value;
+                                attr_value.value_id = elementVal.id;
+                                if (elementVal.value_name) attr_value.original_value_name = elementVal.value_name;
+                                if (elementVal.unit_value) attr_value.value_unit = elementVal.unit_value;
 
                                 attributes_value.push(attr_value);
                             }
