@@ -258,7 +258,7 @@ async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_f
     null,//body
     envStore
   );
-  if(list_item_id.error!=='')return list_item_id
+  if(list_item_id.code!==200)return list_item_id
   item_info_list=[];
   for await (const item of list_item_id.data.item){
     item_info_list.push(item.item_id);
@@ -482,12 +482,12 @@ function getCategory(shop_id,envStore) {
 function getAttribute(shop_id,language,category_id,envStore) {
 
   //path 
-  let path = "/v2/product/get_attributes";
+  let path = "/api/v2/product/get_attributes";
   let param = {};
   param.shop_id = shop_id;
-  if(language)body.language=language
+  if(language)param.language=language
   //required
-  if(category_id)body.language=category_id
+  if(category_id)param.category_id=category_id
 
   return hitApi(
     'get', //method

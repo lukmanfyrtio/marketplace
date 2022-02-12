@@ -572,17 +572,17 @@ router.post('/product/create', async function (req, res) {
                         return;
                     } else {
                         let attributes_value = [];
-                        for await (const element of element.value) {
+                        for await (const elementVal of element.value) {
                             let attr_value = {};
-                            if (element.id === null || element.id === undefined) {
+                            if (elementVal.id === null || elementVal.id === undefined) {
                                 response.code = 400;
                                 response.message = `Field value.[id] cant be empty in attributes field"`;
                                 res.status(response.code).send(response);
                                 return;
                             } else {
-                                attr_value.value_id = element.id;
-                                if (element.value_name) attr_value.original_value_name = element.value_name;
-                                if (element.unit_value) attr_value.value_unit = element.unit_value;
+                                attr_value.value_id = elementVal.id;
+                                if (elementVal.value_name) attr_value.original_value_name = elementVal.value_name;
+                                if (elementVal.unit_value) attr_value.value_unit = elementVal.unit_value;
 
                                 attributes_value.push(attr_value);
                             }
@@ -2089,7 +2089,7 @@ router.get('/brands', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter category_id is required on shopee"
             } else {
-                let hitAPI = await apiShoppe.getBrands(shop_id, category_id, 'id', page, limit)
+                let hitAPI = await apiShoppe.getBrands(shop_id, category_id, 'id', page, limit,req.envStore)
                 res.send(hitAPI);
                 return;
             }
@@ -2161,7 +2161,7 @@ router.get('/product/creation-status', async function (req, res) {
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
-    } else if (marketplace !== "tokopedia" || marketplace !== "blibli") {
+    } else if (marketplace !== "tokopedia" && marketplace !== "blibli") {
         response.code = 400
         response.message = "Parameter marketplace only available for tokopedia or blibli"
     } else if (shop_id === null || shop_id === undefined) {
@@ -2217,7 +2217,7 @@ router.get('/product/attribute', async function (req, res) {
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
-    } else if (marketplace !== "lazada" || marketplace !== "blibli" || marketplace !== "shopee") {
+    } else if (marketplace !== "lazada" && marketplace !== "blibli" && marketplace !== "shopee") {
         response.code = 400
         response.message = "Parameter marketplace only available for lazada,shopee or blibli"
     } else if (shop_id === null || shop_id === undefined) {
@@ -2229,15 +2229,16 @@ router.get('/product/attribute', async function (req, res) {
     } else if (category_id === null || category_id === undefined) {
         response.code = 400
         response.message = "Parameter category_id is required "
-    } else if (Object.values(languageList).includes(language)) {
-        response.message = "possible value is en(English), vi(Vietnamese), id(Indonesian), th(Thai), zh-Hant(Traditional Chinese), zh-Hans(Simplified Chinese), ms-my(Malaysian Malay), pt-br(Brazil). default value is 'id"
+    } else if (!Object.values(languageList).includes(language)) {
+        response.code = 400
+        response.message = "possible language is en(English), vi(Vietnamese), id(Indonesian), th(Thai), zh-Hant(Traditional Chinese), zh-Hans(Simplified Chinese), ms-my(Malaysian Malay), pt-br(Brazil). default value is 'id"
     } else {
         if (marketplace == "tokopedia") {
             let hitAPI = await apiTokped.getStatusProduct(shop_id, requestId);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAttribute(shop_id, language, category_id)
+            let hitAPI = await apiShoppe.getAttribute(shop_id, language, category_id,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -2337,7 +2338,7 @@ router.post('/request-pickup', async function (req, res) {
                         res.status(response.code).send(response);
                         return;
                     } else {
-                        hitAPI = await apiShoppe.getShipParameter(shop_id, element.order_id);
+                        hitAPI = await apiShoppe.getShipParameter(shop_id, element.order_id,req.envStore);
                         console.log(hitAPI.code);
                         if (hitAPI.code !== 200) {
                             console.log(hitAPI);
@@ -2370,7 +2371,7 @@ router.post('/request-pickup', async function (req, res) {
                             }
 
                             if (notError) {
-                                hitAPI = await apiShoppe.shipOrder(shop_id, element.order_id, package_number, address_id, pickup_time_id, tracking_number, branch_id, sender_real_name, tracking_number, slug, non_integrated_pkgn)
+                                hitAPI = await apiShoppe.shipOrder(shop_id, element.order_id, package_number, address_id, pickup_time_id, tracking_number, branch_id, sender_real_name, tracking_number, slug, non_integrated_pkgn,req.envStore)
                                 if (hitAPI.data.error == "") {
                                     res.status(response.code).send(response);
                                     return;
@@ -2876,7 +2877,7 @@ router.get('/shop_info', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getShopInfo(shop_id);
+            let hitAPI = await apiShoppe.getShopInfo(shop_id,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -3019,7 +3020,7 @@ router.post('/shop_info/update', async function (req, res) {
                     }
                 });
             }
-            let hitAPI = await apiShoppe.updateShopInfo(shop_id, shop_description, display_pickup_address, offer ? 0 : 1, arrayVideo, arrayImage, shop_name)
+            let hitAPI = await apiShoppe.updateShopInfo(shop_id, shop_description, display_pickup_address, offer ? 0 : 1, arrayVideo, arrayImage, shop_name,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
