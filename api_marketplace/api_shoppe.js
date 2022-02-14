@@ -2,7 +2,7 @@
 const axios = require('axios')
 const crypto = require('crypto')
 const db = require('mariadb')
-const {conf, env} = require('../conf') 
+const {conf, env} = require('../conf')
 
 const pl = db.createPool(conf.db)
 async function eq(q) {
@@ -18,6 +18,22 @@ async function eq(q) {
   }
 }
 
+async function getEnvStores() {
+  const rs = await eq(
+    `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
+  )
+  if (rs && rs.text) console.log(rs)
+  else {
+    // process.env.mpstores = jsonS(rs)
+    const mpstores = rs ? rs : []
+    for (const mpstore of mpstores) {
+      // process.env['mpstore' + mpstore.shop_id] = jsonS(mpstore)
+      process.env['mpstore' + mpstore.shop_id + mpstore.marketplace] = jsonS(mpstore)
+    }
+  }
+  // console.log(process.env)
+}
+
 let url = `https://partner.test-stable.shopeemobile.com`;
 let partnerKey = 'cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13';
 let partner_id = 1005913;
@@ -28,7 +44,7 @@ let redirectUrl = "http://wms.gosyenretail.co.id/";
 async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore) {
   let timest;
   timest = Math.round(new Date().getTime() / 1000)
-  //set param common 
+  //set param common
   let token=envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
   query.timestamp = Number(timest);
   query.partner_id = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}`;
@@ -135,7 +151,10 @@ async function getToken(shop_id, main_account_id,code,envStore) {
         `update stores set token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
       )
       if (rs && rs.text) console.log(rs)
-      resolve(response.data);
+      else {
+        getEnvStores()
+        resolve(response.data)
+      }
     }).catch((e) => {
       resolve(e.response.data);
     });
@@ -173,11 +192,14 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
       console.log(response.data);
       if(response.data.access_token){
         console.log("masuk");
-        const rs = eq(  
+        const rs = eq(
           `update stores set token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
         )
         if (rs && rs.text) console.log(rs)
-        resolve(response.data.access_token);
+        else {
+          getEnvStores()
+          resolve(response.data.access_token)
+        }
       }
     }).catch((e) => {
       console.log(e);
@@ -190,7 +212,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
 
 //https://open.shopee.com/documents?module=94&type=1&id=557&version=2
 function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStore) {
-  //path 
+  //path
   let path = "/api/v2/order/get_order_detail";
   let param = {};
   //requset parameter
@@ -200,7 +222,7 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStor
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -210,7 +232,7 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStor
 //https://open.shopee.com/documents?module=94&type=1&id=542&version=2
 function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
   , order_status, response_optional_fields,envStore) {
-  //path 
+  //path
   let path = "/api/v2/order/get_order_list"
   let param = {};
   param.shop_id = shop_id;
@@ -228,7 +250,7 @@ function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -237,7 +259,7 @@ function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
 //product list
 //https://open.shopee.com/documents?module=89&type=1&id=614&version=2
 async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_from, update_time_to,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/get_item_list"
   let param = {};
 
@@ -253,7 +275,7 @@ async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_f
 
   let list_item_id= await hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,//body
     envStore
@@ -272,7 +294,7 @@ async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_f
 //https://open.shopee.com/documents?module=89&type=1&id=612&version=2
 function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_policy,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/product/get_item_base_info"
   let param = {};
   param.shop_id = shop_id;
@@ -285,7 +307,7 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
   if (need_complaint_policy) param.need_complaint_policy = need_complaint_policy
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -301,7 +323,7 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
 // "original_price": 11.11
 // }]
 function updatePrice(shop_id, item_id, new_price,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/update_price"
   let param = {};
   param.shop_id = shop_id;
@@ -317,7 +339,7 @@ function updatePrice(shop_id, item_id, new_price,envStore) {
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -333,7 +355,7 @@ function updatePrice(shop_id, item_id, new_price,envStore) {
 //   "normal_stock": 100
 //   }]
 function updateStock(shop_id, item_id, new_stock,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/update_stock"
   let param = {};
   param.shop_id = shop_id;
@@ -347,7 +369,7 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
   }
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body,
     ,envStore
@@ -355,7 +377,7 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
 }
 
 function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/update_stock"
   let param = {};
   param.shop_id = shop_id;
@@ -386,7 +408,7 @@ function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,t
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -398,7 +420,7 @@ function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,t
 //product get module list
 //https://open.shopee.com/documents?module=89&type=1&id=618&version=2
 function getModuleList(item_id_list,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/get_model_list"
   let param = {};
   //required
@@ -406,7 +428,7 @@ function getModuleList(item_id_list,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null
     ,envStore
@@ -416,7 +438,7 @@ function getModuleList(item_id_list,envStore) {
 // get ship parameter
 //https://open.shopee.com/documents/v2/v2.logistics.get_shipping_parameter?module=95&type=1
 function getShipParameter(shop_id,order_sn,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/get_model_list"
   let param = {};
   //required
@@ -425,7 +447,7 @@ function getShipParameter(shop_id,order_sn,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null
     ,envStore
@@ -437,7 +459,7 @@ function getShipParameter(shop_id,order_sn,envStore) {
 //https://open.shopee.com/documents?module=89&type=1&id=562&version=2
 function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size="",envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/product/get_comment";
   let param = {};
   param.shop_id = shop_id;
@@ -450,7 +472,7 @@ function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size=""
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null
     ,envStore
@@ -461,7 +483,7 @@ function getProductDiscussion(shop_id, item_id, comment_id, page_size=50,size=""
 //https://open.shopee.com/documents?module=89&type=1&id=562&version=2
 function getCategory(shop_id,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/product/get_category";
   let param = {};
   param.shop_id = shop_id;
@@ -471,7 +493,7 @@ function getCategory(shop_id,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -491,7 +513,7 @@ function getAttribute(shop_id,language,category_id,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null
     ,envStore
@@ -501,7 +523,7 @@ function getAttribute(shop_id,language,category_id,envStore) {
 
 function getSingleSettlement(shop_id,order_sn,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/payment/get_escrow_detail";
   let param = {};
   let body = {};
@@ -510,7 +532,7 @@ function getSingleSettlement(shop_id,order_sn,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//qu
     body,
     envStore
@@ -519,7 +541,7 @@ function getSingleSettlement(shop_id,order_sn,envStore) {
 
 function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50,page_no=0,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/payment/get_escrow_list";
   let param = {};
   let body = {};
@@ -531,7 +553,7 @@ function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     body,//qu
     null,
     envStore
@@ -540,13 +562,13 @@ function getAllSettlement(shop_id,release_time_from,release_time_to,page_size=50
 
 function getLogistic(shop_id,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/logistics/get_channel_list";
   let param = {};
   param.shop_id = shop_id;
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -554,7 +576,7 @@ function getLogistic(shop_id,envStore) {
 }
 
 function getBrands(shop_id,category_id,language,page_size=50,offset=0,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/get_brand_list";
   let param = {};
   param.shop_id = shop_id;
@@ -565,7 +587,7 @@ function getBrands(shop_id,category_id,language,page_size=50,offset=0,envStore) 
   param.offset = offset;
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null
     ,envStore
@@ -575,7 +597,7 @@ function getBrands(shop_id,category_id,language,page_size=50,offset=0,envStore) 
 
 function getReturns(shop_id,page_no=0,page_size=50,create_time_from,create_time_to,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/returns/get_return_list";
   let param = {};
   if(shop_id)param.shop_id = shop_id;
@@ -585,7 +607,7 @@ function getReturns(shop_id,page_no=0,page_size=50,create_time_from,create_time_
   if(create_time_from)param.create_time_to = create_time_from;
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param//query
     ,null
     ,envStore
@@ -595,7 +617,7 @@ function getReturns(shop_id,page_no=0,page_size=50,create_time_from,create_time_
 
 function getReturnDetail(shop_id,return_sn,envStore) {
 
-  //path 
+  //path
   let path = "/api/v2/returns/get_return_detail";
   let param = {};
   param.shop_id = shop_id;
@@ -603,7 +625,7 @@ function getReturnDetail(shop_id,return_sn,envStore) {
 
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param//query
     ,null
     ,envStore
@@ -611,7 +633,7 @@ function getReturnDetail(shop_id,return_sn,envStore) {
 }
 
 function confirmReturn(shop_id,return_sn,envStore) {
-  //path 
+  //path
   let path = "/api/v2/returns/confirm";
   let param = {};
   let body = {}
@@ -620,7 +642,7 @@ function confirmReturn(shop_id,return_sn,envStore) {
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -629,7 +651,7 @@ function confirmReturn(shop_id,return_sn,envStore) {
 
 
 function disputeReturn(shop_id,return_sn,email,dispute_reason,dispute_text_reason,image,envStore) {
-  //path 
+  //path
   let path = "/api/v2/returns/dispute";
   let param = {};
   let body = {}
@@ -642,7 +664,7 @@ function disputeReturn(shop_id,return_sn,email,dispute_reason,dispute_text_reaso
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -659,7 +681,7 @@ function disputeReturn(shop_id,return_sn,email,dispute_reason,dispute_text_reaso
 //         }
 //     ]
 function postProductDiscussion(shop_id,comment_id,message,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/reply_comment";
   let param = {};
   param.shop_id = shop_id;
@@ -673,7 +695,7 @@ function postProductDiscussion(shop_id,comment_id,message,envStore) {
 }
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -684,7 +706,7 @@ function postProductDiscussion(shop_id,comment_id,message,envStore) {
 function createProduct(shop_id, original_price , description,weight,item_name,item_status,dimension
   ,normal_stock ,logistic_info ,attribute_list,category_id ,image ,pre_order,item_sku,condition,wholesale,video_upload_id,brand,item_dangerous
   ,tax_info,complaint_policy,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/add_item"
   let param = {};
   param.shop_id = shop_id;
@@ -717,7 +739,7 @@ function createProduct(shop_id, original_price , description,weight,item_name,it
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body,//body,
     envStore
@@ -727,7 +749,7 @@ function createProduct(shop_id, original_price , description,weight,item_name,it
 function updateProduct(shop_id, item_id , description,weight,item_name,item_status,dimension
    ,logistic_info ,attribute_list,category_id ,image ,pre_order,item_sku,condition,wholesale,video_upload_id,brand,item_dangerous
   ,tax_info,complaint_policy,envStore) {
-  //path 
+  //path
   let path = "/api/v2/product/update_item"
   let param = {};
   param.shop_id = shop_id;
@@ -759,7 +781,7 @@ function updateProduct(shop_id, item_id , description,weight,item_name,item_stat
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body,
     ,envStore
@@ -772,7 +794,7 @@ function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id,envStore) {
     item_id=item_id,
     model_id=model_id
   ]
-  //path 
+  //path
   let path = "/api/v2/order/cancel_order";
   let param = {};
   param.shop_id = shop_id;
@@ -785,7 +807,7 @@ function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id,envStore) {
 
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -797,7 +819,7 @@ function buyerCancel(shop_id,order_sn,operation,envStore) {
   let responseData = {};
   responseData.marketplace = "shopee"
   responseData.timestamp = new Date().getTime();
-  //path 
+  //path
   let path = "/api/v2/order/cancel_order";
   let param = {};
   param.shop_id = shop_id;
@@ -814,7 +836,7 @@ function buyerCancel(shop_id,order_sn,operation,envStore) {
   }
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     body//body
     ,envStore
@@ -823,13 +845,13 @@ function buyerCancel(shop_id,order_sn,operation,envStore) {
 
 function getShopInfo(shop_id,envStore) {
 
-  //path 
+  //path
   let path = "/api/v1/shop/get";
   let param = {};
   if(shop_id)param.shop_id = shop_id;
   return hitApi(
     'get', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore
@@ -838,7 +860,7 @@ function getShopInfo(shop_id,envStore) {
 
 function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name,envStore) {
 
-  //path 
+  //path
   let path = "/api/v1/shop/update";
   let param = {};
   if(shop_id)param.shop_id = shop_id;
@@ -851,7 +873,7 @@ function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_m
   if(shop_name)param.shop_name = shop_name;
   return hitApi(
     'post', //method
-    path, //path 
+    path, //path
     param,//query
     null,
     envStore

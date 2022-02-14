@@ -6,6 +6,7 @@ User Password ssh : root, password: pr0jectwms
 
 Dev Account<br>
 user : it.vci.development@gmail.com<br>
+user khusus Blibli: ptgri@gosyenretail.co.id<br>
 pass : it.VCI.2020
 
 1. Tokopedia https://developer.tokopedia.com/openapi/guide/#/
@@ -33,18 +34,21 @@ pass : it.VCI.2020
 
 2. Shopee https://open.shopee.com/documents?version=2
 
-	Auth link: https://partner.shopeemobile.com/api/v1/shop/auth_partner?id=1005913&token=22eceb196a8698b22e54520d54345f8ad2adff0a5c778672791c65f69432145f&redirect=http://wms.gosyenretail.co.id/
-
+	- Testing<br>
 	Partner ID: 1005913<br>
 	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13
 
-	Akun Seller<br>
+	- Live<br>
+	Partner ID: 2003185<br>
+	Partner Key: 9ec9c195a75af4b3312d35f30a743af9657a6e745432df64d357144d25851150
+
+	- Akun Seller<br>
 	Shop ID：38923<br>
 	https://seller.test-stable.shopee.co.id/account/signin?next=%2F<br>
 	username : SANDBOX.7c328b48afb9016922f8<br>
 	password : 2ce147a7e1526ec7
 
-	Akun Buyer<br>
+	- Akun Buyer<br>
 	https://test-stable.shopee.co.id/shop/38923<br>
 	Username : SANDBOX_BUYER.d9eb67b03d07ee<br>
 	Password : 307f19f185dbbcf7
@@ -60,3 +64,6 @@ Password: it.vci.development@gmail.com|it.VCI.2020<br>
 Shop ID: ID11EA9
 
 4. Blibli https://seller-api.blibli.com/docs/sections/60/contents/2867?title=introduction
+
+	Client ID: mta-api-ptgosyenretailin-919f0<br>
+	Client Key: mta-api-5uApGjMJCx0RkkD2MQRjzXKGn0pEmbfzZmnqmagl9f2DlyxDdl
