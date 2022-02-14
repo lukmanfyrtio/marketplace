@@ -62,7 +62,7 @@ router.get('/return/list', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getAllReturns(page, limit)
+            let hitAPI = await apiLazada.getAllReturns(req.envStore,page, limit)
             res.send(hitAPI);
             return;
         }
@@ -118,7 +118,7 @@ router.get('/return', async function (req, res) {
                 return;
             }
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getSingleReturn(return_id)
+            let hitAPI = await apiLazada.getSingleReturn(req.envStore,return_id)
             res.send(hitAPI);
             return;
         }
@@ -171,7 +171,7 @@ router.post('/return/accept', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter action only available for agreeRefund or agreeReturn"
             } else {
-                let hitAPI = await apiLazada.acceptRejectReturn("agreeReturn", return_id, '[]', 0, reason, images)
+                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,"agreeReturn", return_id, '[]', 0, reason, images)
                 res.send(hitAPI);
                 return;
             }
@@ -274,7 +274,7 @@ router.post('/return/reject', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter action only available for refuseRefund or refuseReturn"
             } else {
-                let hitAPI = await apiLazada.acceptRejectReturn(action, return_id, '[]', 0, reason, images)
+                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,action, return_id, '[]', 0, reason, images)
                 res.send(hitAPI);
                 return;
             }

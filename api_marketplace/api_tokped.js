@@ -428,7 +428,7 @@ function updateProductV3(shop_id, name, id,category_id, price_currency, price, s
   let params = {};
   let productsObj = {};
   //required
-  if (name) productsObj.id = id
+  if (id) productsObj.id = id
   if (name) productsObj.name = name
   if (sku) productsObj.sku = sku.toString()
   if (category_id) productsObj.category_id = category_id

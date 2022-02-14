@@ -260,8 +260,8 @@ router.post('/product/create', async function (req, res) {
             if (wholesale_price || wholesale_qty) {
                 if (wholesale_qty) {
                     if (wholesale_price) {
-                        if (isInteger(wholesale_qty)) {
-                            if (isInteger(wholesale_price)) {
+                        if (Number.isInteger(wholesale_qty)) {
+                            if (Number.isInteger(wholesale_price)) {
                                 wholesale_tokped = [
                                     {
                                         min_qty: wholesale_qty,
@@ -838,7 +838,7 @@ router.post('/product/create', async function (req, res) {
                     array_images_product.push(imageProduct);
                 }
             });
-            let hitAPI = await apiLazada.createProduct(category_id, array_images_product, product_name, description, brand, array_variant.join(''));
+            let hitAPI = await apiLazada.createProduct(req.envStore,category_id, array_images_product, product_name, description, brand, array_variant.join(''));
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -902,30 +902,6 @@ router.post('/product/update', async function (req, res) {
     const url_video = body.url_video
     const variant = body.variant
     const sku_id = body.sku_id
-
-
-    // if (variant !== null && variant !== undefined) {
-    //     if (variant.name === null && variant.name === undefined) {
-    //         response.code = 400;
-    //         response.message = "name is required in variant field";
-    //     } else if (variant.is_primary === null && variant.is_primary === undefined) {
-    //         response.code = 400;
-    //         response.message = "is_primary is required in variant field";
-    //     } else if (variant.status === null && variant.status === undefined) {
-    //         response.code = 400;
-    //         response.message = "status is required in variant field";
-    //     } else if (variant.price === null && variant.price === undefined) {
-    //         response.code = 400;
-    //         response.message = "price is required in variant field";
-    //     } else if (variant.stock === null && variant.stock === undefined) {
-    //         response.code = 400;
-    //         response.message = "stock is required in variant field";
-    //     } else if (variant.sku === null && variant.sku === undefined) {
-    //         response.code = 400;
-    //         response.message = "sku is required in variant field";
-    //     }
-    // }
-
     const selection = body.selection
     const logistics = body.logistics
     if (logistics !== null && logistics !== undefined) {
@@ -1097,19 +1073,21 @@ router.post('/product/update', async function (req, res) {
     else {
         if (marketplace == "tokopedia") {
             let arrayImage = []
-            images.forEach(element => {
-                let img = {
-                    file_path: element.url
-                }
-                arrayImage.push(img);
-            });
+            if(images){
+                images.forEach(element => {
+                    let img = {
+                        file_path: element.url
+                    }
+                    arrayImage.push(img);
+                });
+            }
 
             if (etalase_id === null || etalase_id === undefined) {
                 response.message = "Parameter etalase_id is required"
             }
-            let u_weight = unit_weight == 'kg' ? 'KG' : 'GR'
-            let kondisi = condition == 'used' ? 'USED' : 'NEW'
-            let status_tokped = status == 'active' ? 'LIMITED' : 'EMPTY';
+            let u_weight = unit_weight?unit_weight == 'kg' ? 'KG' : 'GR':null;
+            let kondisi = condition?condition == 'used' ? 'USED' : 'NEW':null;
+            let status_tokped = status?status == 'active' ? 'LIMITED' : 'EMPTY':null;
 
             let etalase = {
                 id: etalase_id
@@ -1130,8 +1108,8 @@ router.post('/product/update', async function (req, res) {
             if (wholesale_price || wholesale_qty) {
                 if (wholesale_qty) {
                     if (wholesale_price) {
-                        if (isInteger(wholesale_qty)) {
-                            if (isInteger(wholesale_price)) {
+                        if (Number.isInteger(wholesale_qty)) {
+                            if (Number.isInteger(wholesale_price)) {
                                 wholesale_tokped = [
                                     {
                                         min_qty: wholesale_qty,
@@ -1160,22 +1138,17 @@ router.post('/product/update', async function (req, res) {
                         preorder_time = time_unit == 'day' ? 'DAY' : 'WEEK';
 
                         if (time_unit !== 'day' && time_unit !== 'week') response.message = 'preorder.time_unit is only day or week, ';
-                    }
-                    else {
-                        preorder_time = 'DAY';
+                    } else {
+                        $preorder_time = 'DAY';
                         preorderTokopedia = {
                             is_active: true,
                             duration: Number(preorder.duration),
                             time_unit: preorder_time
                         }
                     }
+                } else {
+                    response.message = 'Include field preorder.duration if preorder is defined';
                 }
-                else {
-                    response.message = 'Field preorder.duration shall be integer, ';
-                }
-            }
-            else {
-                response.message = 'Include field preorder.duration if preorder is defined';
             }
 
             let videos;
@@ -1187,7 +1160,6 @@ router.post('/product/update', async function (req, res) {
                     }
                 ]
             }
-
 
             let variantTokped;
             if (variant) {
@@ -1243,19 +1215,17 @@ router.post('/product/update', async function (req, res) {
                             return;
                         } else if (!element.sku) {
                             response.message = 'Field variant sku in body is required, ';
-                        } else if (!element.is_primary) {
-                            response.message = 'Field variant is_primary in body is required, ';
-                            res.status(response.code).send(response);
-                            return;
-                        } else if (!element.combination) {
+                        } else if (element.combination === null | element.combination === undefined) {
                             response.message = 'Field variant combination in body is required, ';
                             res.status(response.code).send(response);
                             return;
                         } else {
+                            console.log("sini");
                             price_variant = element.price;
                             stock_variant = element.stock;
                             sku_variant = element.sku;
-                            let status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
+                            let status_tokped;
+                            if (element.status) status_tokped = element.status == 'active' ? 'LIMITED' : 'EMPTY';
 
                             let arrayImageVariant = []
                             if (element.images) {
@@ -1269,7 +1239,7 @@ router.post('/product/update', async function (req, res) {
                                         let img = {
                                             file_path: element.url
                                         }
-                                        arrayImage.push(img);
+                                        arrayImageVariant.push(img);
                                     }
                                 });
                             }
@@ -1279,13 +1249,18 @@ router.post('/product/update', async function (req, res) {
                                 price: Number(price_variant),
                                 stock: stock_variant,
                                 sku: sku_variant.toString(),
-                                combination: [combination],
-                                pictures: arrayImageVariant
+                                combination: [element.combination],
+                                // pictures: arrayImageVariant
                             }
                             array_variant.push(variant);
                         }
                     });
+
                     if (selection) {
+                        variantTokped = {
+                            products: array_variant,
+                            selection: selection
+                        }
                         let variant_selection = selection
                         if (!Array.isArray(variant_selection)) {
                             response.code = 400;
@@ -1299,17 +1274,17 @@ router.post('/product/update', async function (req, res) {
                             return;
                         } else {
                             variant_selection.forEach(element => {
-                                if (element.variant_id) {
-                                    variant_id = element.variant_id;
+                                if (element.id) {
+                                    id = element.id;
                                 } else {
-                                    response.message = 'Field seleection variant_id in body is required, ';
+                                    response.message = 'Field selection id in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
                                 }
-                                if (element.variant_unit_id) {
-                                    variant_unit_id = element.variant_unit_id;
+                                if (element.unit_id !== null || element.unit_id !== undefined) {
+                                    unit_id = element.unit_id;
                                 } else {
-                                    response.message = 'Field seleection variant_unit_id in body is required, ';
+                                    response.message = 'Field selection unit_id in body is required, ';
                                     res.status(response.code).send(response);
                                     return;
                                 }
@@ -1356,8 +1331,6 @@ router.post('/product/update', async function (req, res) {
                 }
 
             }
-
-
 
             let hitAPI = await apiTokped.updateProductV3(shop_id, product_name, product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
@@ -1621,23 +1594,105 @@ router.post('/product/update', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            if (sku_id === null || sku_id === undefined) {
-                response.code = 400
-                response.message = "Field sku_id in body is required in lazada marketplace,";
-            } else {
-                let arrayImage = "";
-                images.forEach(element => {
-                    arrayImage += `<Image>${element.url}</Image>`
-                });
-                let hitAPI = await apiLazada.updateProduct(product_id, product_name, description, sku_id, sku, stock, price, length, height, weight, width, arrayImage, null)
+            let new_weight;
+            if(unit_weight){
+                if (unit_weight !== 'KG') new_weight = weight / 1000
+            }
+            response.code = 400
+                let array_variant = [];
+                if (variant) {
+                    if (!Array.isArray(variant)) {
+                        response.code = 400;
+                        response.message = `Field variant in request body shall be array object`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (variant.length === 0) {
+                        response.code = 400;
+                        response.message = `Field variant cant be empty`;
+                        res.status(response.code).send(response);
+                        return;
+                    } else {
+                        variant.forEach(element => {
+                            let variantLazada = `<Sku>`;
+                            if (element.sku == null || element.sku == undefined) {
+                                response.message = "Field sku in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else if (element.sku == null || element.sku == undefined) {
+                                response.message = "Field sku in variant object is required,";
+                                res.status(response.code).send(response);
+                                return;
+                            } else {
+                                let skuId = element.skuId;
+                                if (skuId) variantLazada += `<SkuId>${skuId}</SkuId>`
+
+                                let sellerSku = element.sku;
+                                if (sellerSku) variantLazada += `<SellerSku>${sellerSku}</SellerSku>`
+    
+                                let color_family = element.color_family;
+                                if (color_family) variantLazada += `<color_family>${color_family}</color_family>`
+    
+                                let size = element.size;
+                                if (size) variantLazada += `<size>${size}</size>`
+    
+                                let stock = element.stock;
+                                if (stock) variantLazada += `<quantity>${stock}</quantity>`
+    
+                                let price = element.price;
+                                if (price) variantLazada += `<price>${price}</price>`
+    
+                                let length = element.length;
+                                if (length) variantLazada += `<package_length>${length}</package_length>`
+    
+                                //height
+                                let height = element.height;
+                                if (height) variantLazada += `<package_height>${height}</package_height>`
+    
+                                //weight
+                                let weight;
+                                if (unit_weight !== 'KG') weight = element.weight / 1000
+                                if (weight) variantLazada += `<package_weight>${weight}</package_weight>`
+    
+                                let width = element.width;
+                                if (width) variantLazada += `<package_width>${width}</package_width>`
+    
+    
+                                if (element.images) {
+                                    variantLazada += `<Images>`
+                                    element.images.forEach(element => {
+                                        if (element.url) {
+                                            variantLazada += `<Image>${element.url}</Image>`
+                                        }
+                                    });
+                                    variantLazada += `</Images>`
+                                }
+    
+                                variantLazada += `</Sku>`
+                                array_variant.push(variantLazada);
+                            }
+                        });
+                    }
+                } else {
+                    response.message = "Field variant on body is required on lazada";
+                    res.status(response.code).send(response);
+                    return;
+                }
+    
+                // let array_images_product = [];
+                // images.forEach(element => {
+                //     let imageProduct;
+                //     if (element.url) {
+                //         imageProduct = `<Image>${element.url}</Image>`
+                //         array_images_product.push(imageProduct);
+                //     }
+                // });
+
+                let hitAPI = await apiLazada.updateProduct(req.envStore,product_id,category_id,product_name,description,brand,array_variant.join(''))
                 res.status(hitAPI.code).send(hitAPI);
                 return;
-            }
-            res.status(response.code).send(response);
-            return;
         }
     }
-    res.status(response.code).send(response);
+    // res.status(response.code).send(response);
 });
 
 //getAllProduct
@@ -1672,7 +1727,7 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getProducts(page, limit);
+            let hitAPI = await apiLazada.getProducts(req.envStore,page, limit);
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -1715,7 +1770,7 @@ router.get('/product', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getSingleProduct(productId);
+            let hitAPI = await apiLazada.getSingleProduct(req.envStore,productId);
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -1767,7 +1822,7 @@ router.post('/product/update_price', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.updateProductPrice(product_id, new_price, sku_id)
+            let hitAPI = await apiLazada.updateProductPrice(req.envStore,product_id, new_price, sku_id)
             res.send(hitAPI);
             return;
         }
@@ -1818,7 +1873,7 @@ router.post('/product/update_stock', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.updateProductStock(product_id, new_stock, sku_id);
+            let hitAPI = await apiLazada.updateProductStock(req.envStore,product_id, new_stock, sku_id);
             res.send(hitAPI);
             return;
         }
@@ -1832,6 +1887,7 @@ router.delete('/product/delete', async function (req, res) {
     const search = req.query;
     const shop_id = search.shop_id;
     const product_id = search.product_id;
+    const sku = search.sku;
     const marketplace = search.marketplace;
 
     if (marketplace === null || marketplace === undefined) {
@@ -1852,11 +1908,9 @@ router.delete('/product/delete', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            response.code = 400
-            response.message = "still not avalable for shoppe"
-            response.marketplace = "shopee"
-            res.status(response.code).send(response);
-            return;
+            let hitAPI = await apiShoppe.deleteItem(shop_id,product_id,req.envStore)
+                res.send(hitAPI);
+                return;
         } else if (marketplace == "blibli") {
             response.code = 400
             response.message = "still not avalable for blibli"
@@ -1864,11 +1918,16 @@ router.delete('/product/delete', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
-            response.code = 400
-            response.message = "still not avalable for lazada"
-            response.marketplace = "lazada"
-            res.status(response.code).send(response);
-            return;
+            if(sku === null || sku === undefined){
+                response.code = 400
+                response.message = "Parameter sku is required"
+                res.status(response.code).send(response);
+                return;
+            }else{
+                let hitAPI = await apiLazada.removeProduct(req.envStore,product_id,sku);
+                res.send(hitAPI);
+                return;
+            }
         }
     }
     res.status(response.code).send(response)
@@ -1919,7 +1978,7 @@ router.post('/product/update_state', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.updateState(product_id);
+            let hitAPI = await apiLazada.updateState(req.envStore,product_id);
             res.send(hitAPI);
             return;
         }
@@ -1959,7 +2018,7 @@ router.get('/product/category', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getCategory(keyword);
+            let hitAPI = await apiLazada.getCategory(req.envStore,keyword);
             res.send(hitAPI);
             return;
         }
@@ -2144,7 +2203,7 @@ router.get('/brands', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getBrands(page, limit)
+            let hitAPI = await apiLazada.getBrands(req.envStore,page, limit)
             res.send(hitAPI);
             return;
         }
@@ -2292,7 +2351,7 @@ router.get('/product/attribute', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getAttribute(category_id, language);
+            let hitAPI = await apiLazada.getAttribute(req.envStore,category_id, language);
             res.send(hitAPI);
             return;
         }
@@ -2614,12 +2673,12 @@ router.post('/request-pickup', async function (req, res) {
                         res.status(response.code).send(response);
                         return;
                     } else {
-                        hitAPI = await apiLazada.acceptOrder(`[${element.order_id}]`, element.shipping_provider, element.delivery_type)
+                        hitAPI = await apiLazada.acceptOrder(req.envStore,`[${element.order_id}]`, element.shipping_provider, element.delivery_type)
                         if (hitAPI.codeStatus != '0') {
                             res.status(hitAPI.code).send(hitAPI);
                             return;
                         } else {
-                            hitAPI = await apiLazada.orderRts(`[${element.order_id}]`, element.shipping_provider, element.delivery_type, hitAPI.data.order_items[0].tracking_number);
+                            hitAPI = await apiLazada.orderRts(req.envStore,`[${element.order_id}]`, element.shipping_provider, element.delivery_type, hitAPI.data.order_items[0].tracking_number);
                             if (hitAPI.codeStatus != '0') {
                                 res.status(hitAPI.code).send(hitAPI);
                                 return;
@@ -2681,7 +2740,7 @@ router.get('/product/reviews', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getReviewProduct(productId)
+            let hitAPI = await apiLazada.getReviewProduct(req.envStore,productId)
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -2734,7 +2793,7 @@ router.post('/product/review/reply', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.sellerPostReview(review_id, message)
+            let hitAPI = await apiLazada.sellerPostReview(req.envStore,review_id, message)
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -3115,7 +3174,7 @@ router.get('/products_', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI)
             return
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getProducts(page, limit)
+            let hitAPI = await apiLazada.getProducts(req.envStore,page, limit)
             res.status(hitAPI.code).send(hitAPI)
             return
         }

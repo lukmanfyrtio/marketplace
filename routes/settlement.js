@@ -64,7 +64,7 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getAllSettlements(page, limit, start_time, end_time);
+            let hitAPI = await apiLazada.getAllSettlements(req.envStore,page, limit, start_time, end_time);
             res.send(hitAPI);
             return;
         }

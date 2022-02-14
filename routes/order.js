@@ -68,7 +68,7 @@ router.get('/orders', async function (req, res) {
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
-      let hitAPI = await apiLazada.getOrders(page, limit, start_time, end_time)
+      let hitAPI = await apiLazada.getOrders(req.envStore,page, limit, start_time, end_time)
       res.status(hitAPI.code).send(hitAPI);
       return;
     }
@@ -114,7 +114,7 @@ router.get('/order', async function (req, res) {
       res.send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
-      let hitAPI = await apiLazada.getSingleOrder(orderid)
+      let hitAPI = await apiLazada.getSingleOrder(req.envStore,orderid)
       res.status(hitAPI.code).send(hitAPI);
       return;
     }
@@ -301,7 +301,7 @@ router.post('/process/order', async function (req, res) {
             response.code = 400
             response.message = "Field shipping_provider is required "
           } else {
-            hitAPI = await apiLazada.acceptOrder(`${element.order_id}`, element.shipping_provider, element.delivery_type);
+            hitAPI = await apiLazada.acceptOrder(req.envStore,`${element.order_id}`, element.shipping_provider, element.delivery_type);
             if (hitAPI.codeStatus != '0') {
               res.status(hitAPI.code).send(hitAPI);
               return;
@@ -330,7 +330,7 @@ router.post('/process/order', async function (req, res) {
             res.status(response.code).send(response)
             return;
           } else {
-            hitAPI = await apiLazada.cancelOrder(element.cancel_reason, element.order_id)
+            hitAPI = await apiLazada.cancelOrder(req.envStore,element.cancel_reason, element.order_id)
             if (hitAPI.codeStatus != '0') {
               res.status(hitAPI.code).send(hitAPI);
               return;

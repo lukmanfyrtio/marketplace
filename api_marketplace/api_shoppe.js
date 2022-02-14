@@ -45,11 +45,11 @@ let timest;
 let redirectUrl = "http://wms.gosyenretail.co.id/";
 
 
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore) {
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore,acc_token) {
   let timest;
   timest = Math.round(new Date().getTime() / 1000)
   //set param common
-  let token=envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
+  let token=acc_token?acc_token:envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
   query.timestamp = Number(timest);
   query.partner_id = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}`;
 
@@ -71,8 +71,8 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       data: body
 
     }).then(function (response) {
-      console.log(response.config);
-      console.log(response.data);
+      // console.log(response.config);
+      // console.log(response.data);
       responseData.code = response.status;
 
       if(response.data.msg){
@@ -87,8 +87,8 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       resolve(responseData);
 
     }).catch((e) => {
-      console.log(e.response.config);
-      console.log(e.response.data);
+      // console.log(e.response.config);
+      // console.log(e.response.data);
       responseData.code = e.response.status;
       if (e.response.status == 403) {
         responseData.message = e.response.data.message
@@ -193,20 +193,19 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
       data: body
 
     }).then(function (response) {
-      console.log(response.data);
       if(response.data.access_token){
-        console.log("masuk");
         const rs = eq(
           `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
         )
-        if (rs && rs.text) console.log(rs)
+        if (rs && rs.text) console.log(rs+"sasa")
         else {
           getEnvStores()
           resolve(response.data.access_token)
         }
       }
     }).catch((e) => {
-      console.log(e);
+      console.log(e.config.data);
+      console.log(e.response.data);
       resolve(`${envStore && envStore.token ? envStore.token : token}`);
     });
   });
@@ -289,14 +288,15 @@ async function getAllProducts(shop_id, offset = 0, page_size = 50, update_time_f
   for await (const item of list_item_id.data.item){
     item_info_list.push(item.item_id);
   }
-  const itemInfo= await getSingleProduct(shop_id,item_info_list,null,null,envStore);
+  const itemInfo= await getSingleProduct(shop_id,item_info_list,null,null,envStore,envStore && envStore.token ?envStore.token :null);
+  if(itemInfo.code!=200)return itemInfo
   list_item_id.data.item=itemInfo.data.item_list;
   return list_item_id;
 }
 
 //product base info
 //https://open.shopee.com/documents?module=89&type=1&id=612&version=2
-function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_policy,envStore) {
+function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_policy,envStore,acc_token) {
 
   //path
   let path = "/api/v2/product/get_item_base_info"
@@ -314,7 +314,8 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
     path, //path
     param,//query
     null,
-    envStore
+    envStore,
+    acc_token
   );
 }
 
@@ -338,6 +339,27 @@ function updatePrice(shop_id, item_id, new_price,envStore) {
       // "model_id": 0,
       "original_price": Number(new_price)
     }]
+  }
+
+
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body//body
+    ,envStore
+  );
+}
+
+
+function deleteItem(shop_id, item_id,envStore) {
+  //path
+  let path = "/api/v2/product/delete_item"
+  let param = {};
+  param.shop_id = shop_id;
+
+  let body = {
+    "item_id": item_id
   }
 
 
@@ -886,4 +908,4 @@ function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_m
 
 
 
-module.exports = {getRefreshToken,getCode,getToken,getBrands,getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
