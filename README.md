@@ -6,6 +6,7 @@ User Password ssh : root, password: pr0jectwms
 
 Dev Account<br>
 user : it.vci.development@gmail.com<br>
+user khusus Blibli: ptgri@gosyenretail.co.id<br>
 pass : it.VCI.2020
 
 1. Tokopedia https://developer.tokopedia.com/openapi/guide/#/
@@ -60,3 +61,5 @@ Password: it.vci.development@gmail.com|it.VCI.2020<br>
 Shop ID: ID11EA9
 
 4. Blibli https://seller-api.blibli.com/docs/sections/60/contents/2867?title=introduction
+
+API Client Key: mta-api-5uApGjMJCx0RkkD2MQRjzXKGn0pEmbfzZmnqmagl9f2DlyxDdl
