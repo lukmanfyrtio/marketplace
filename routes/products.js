@@ -4,6 +4,39 @@ const apiBlibli = require('../api_marketplace/api_blibli.js')
 const apiLazada = require('../api_marketplace/api_lazada.js')
 const moment = require('moment')
 
+const db = require('mariadb')
+const {conf, env} = require('../conf')
+
+const pl = db.createPool(conf.db)
+async function eq(q) {
+  let cn, rw
+  try {
+  	cn = await pl.getConnection()
+  	rw = await cn.query(q)
+  } catch (err) {
+    rw = err
+  } finally {
+    if (cn) cn.end()
+    return rw
+  }
+}
+
+async function getEnvStores() {
+  const rs = await eq(
+    `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
+  )
+  if (rs && rs.text) console.log(rs)
+  else {
+    // process.env.mpstores = jsonS(rs)
+    const mpstores = rs ? rs : []
+    for (const mpstore of mpstores) {
+      // process.env['mpstore' + mpstore.shop_id] = jsonS(mpstore)
+      process.env['mpstore' + mpstore.shop_id + mpstore.marketplace] = jsonS(mpstore)
+    }
+  }
+  // console.log(process.env)
+}
+
 const express = require('express')
 const router = express.Router();
 
@@ -21,6 +54,15 @@ function isValidDate(date) {
 function unixTms(date) {
     return Math.floor(new Date(date).getTime() / 1000.0)
 }
+
+// reload env
+router.get('/envstores/reload', async function (req, res) {
+  getEnvStores()
+  response.code = 200
+  response.message = 'env reloaded'
+  res.status(response.code).send(response);
+})
+
 //create product
 router.post('/product/create', async function (req, res) {
     const search = req.query;
@@ -974,11 +1016,11 @@ router.post('/product/update', async function (req, res) {
     } else if (product_id === null || product_id === undefined) {
         response.code = 400
         response.message = "Field product_id in request body required"
-    } 
+    }
     // else if (sku === null || sku === undefined) {
     //     response.code = 400
     //     response.message = "Field sku in request body required"
-    // } 
+    // }
     // else if (product_name === null || product_name === undefined) {
     //     response.code = 400
     //     response.message = "Field product_name in request body required"
@@ -1337,7 +1379,7 @@ router.post('/product/update', async function (req, res) {
                 images.forEach(element => {
                     array_images.push(element.url);
                 });
-    
+
                 imageReq = {
                     image_id_list: array_images
                 };//Required

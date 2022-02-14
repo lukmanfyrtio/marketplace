@@ -47,7 +47,7 @@ async function getEnvStores() {
 
 // env selalu dikeluarkan di tiap hit
 app.use(function(req, res, next){
-  getEnvStores()
+  // getEnvStores()
   // req.envStore = Object.assign([],
   //   process.env.mpstores ?
   //     jsonP(process.env.mpstores).filter(store => {
@@ -59,7 +59,7 @@ app.use(function(req, res, next){
     jsonP(process.env['mpstore' + req.query.shop_id + req.query.marketplace])
   )
   // console.log(req.envStore)
-  if (!req.envStore.marketplace) {
+  if (!req.envStore.marketplace && req.url !== '/envstores/reload') {
     response.code = 400
     response.message = "shop_id not found"
     res.status(response.code).send(response);
