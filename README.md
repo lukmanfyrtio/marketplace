@@ -34,18 +34,35 @@ pass : it.VCI.2020
 
 2. Shopee https://open.shopee.com/documents?version=2
 
-	Auth link: https://partner.shopeemobile.com/api/v1/shop/auth_partner?id=1005913&token=22eceb196a8698b22e54520d54345f8ad2adff0a5c778672791c65f69432145f&redirect=http://wms.gosyenretail.co.id/
+	Generate Auth Link
+
+	`<?php
+
+	date_default_timezone_set("Asia/Jakarta");
+
+	$ts = time();
+	$ru = 'http://wms.gosyenretail.co.id/';
+	$hs = 'https://partner.shopeemobile.com';
+	$ap = '/api/v2/shop/auth_partner';
+	$pi = 2003185;
+	$pk = '9ec9c195a75af4b3312d35f30a743af9657a6e745432df64d357144d25851150';
+	$bs = $pi.$ap.$ts;
+	$sign = hash_hmac('sha256', $bs, $pk);
+	$url = $hs.$ap."?partner_id=$pi&sign=$sign&timestamp=$ts&redirect=$ru";
+	echo $url;
+
+	?>`
 
 	Partner ID: 1005913<br>
 	Partner Key: cd7e475dee4d76c283b06acc9ee0eca28d8a75bea7aff3b2e61adfc292a79f13
 
-	Akun Seller<br>
+	- Akun Seller<br>
 	Shop ID：38923<br>
 	https://seller.test-stable.shopee.co.id/account/signin?next=%2F<br>
 	username : SANDBOX.7c328b48afb9016922f8<br>
 	password : 2ce147a7e1526ec7
 
-	Akun Buyer<br>
+	- Akun Buyer<br>
 	https://test-stable.shopee.co.id/shop/38923<br>
 	Username : SANDBOX_BUYER.d9eb67b03d07ee<br>
 	Password : 307f19f185dbbcf7
