@@ -7,6 +7,10 @@ const moment = require('moment')
 const db = require('mariadb')
 const {conf, env} = require('../conf')
 
+function jsonS(d) {return JSON.stringify(d)}
+function jsonP(d) {return d ? JSON.parse(d) : {}}
+function jsonPs(d) {return jsonP(jsonS(d))}
+
 const pl = db.createPool(conf.db)
 async function eq(q) {
   let cn, rw
