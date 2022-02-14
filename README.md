@@ -65,4 +65,5 @@ Shop ID: ID11EA9
 
 4. Blibli https://seller-api.blibli.com/docs/sections/60/contents/2867?title=introduction
 
-API Client Key: mta-api-5uApGjMJCx0RkkD2MQRjzXKGn0pEmbfzZmnqmagl9f2DlyxDdl
+	Client ID: mta-api-ptgosyenretailin-919f0<br>
+	Client Key: mta-api-5uApGjMJCx0RkkD2MQRjzXKGn0pEmbfzZmnqmagl9f2DlyxDdl
