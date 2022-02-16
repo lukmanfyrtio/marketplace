@@ -50,7 +50,7 @@ router.get('/return/list', async function (req, res) {
             response.code = 400
             response.message = "Parameter end_time format is YYYY-MM-DD"
         } else if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getResolutionTicket(shop_id, start_time, end_time)
+            let hitAPI = await apiTokped.getResolutionTicket(req.envStore,shop_id, start_time, end_time)
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {

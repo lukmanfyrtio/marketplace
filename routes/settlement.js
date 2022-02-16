@@ -52,7 +52,7 @@ router.get('/settlements', async function (req, res) {
         response.message = "Parameter end_time format date is YYYY-MM-DD "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getAllSettlements(shop_id, page, limit, start_time, end_time);
+            let hitAPI = await apiTokped.getAllSettlements(req.envStore,shop_id, page, limit, start_time, end_time);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {

@@ -51,12 +51,12 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
   //set param common
   let token=acc_token?acc_token:envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
   query.timestamp = Number(timest);
-  query.partner_id = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}`;
+  query.partner_id = `${envStore && envStore.clientid ? envStore.clientid : partner_id}`;
 
   if (query.shop_id) query.access_token =token;
 
-  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest+token+query.shop_id;
-  let resultSign = sign(baseString);
+  let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest+token+query.shop_id;
+  let resultSign = sign(baseString,envStore);
   query.sign = resultSign;
 
   let responseData = {};
@@ -99,8 +99,8 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
 }
 
 
-function sign(baseString) {
-  var hmac = crypto.createHmac('sha256', partnerKey);
+function sign(baseString,envStore) {
+  var hmac = crypto.createHmac('sha256', `${envStore && envStore.clientkey ? envStore.clientkey : partnerKey}`);
   //passing the data to be hashed
   let data = hmac.update(baseString);
   //Creating the hmac in the required format
@@ -112,8 +112,8 @@ function getCode(envStore) {
   let param = {};
   timest = Number(Math.round(new Date().getTime() / 1000))
   let path = '/api/v2/shop/auth_partner'
-  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest;
-  let result_sign = sign(baseString);
+  let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest;
+  let result_sign = sign(baseString,envStore);
 
   param.partner_id = partner_id;
   param.timestamp = timest;
@@ -127,8 +127,8 @@ async function getToken(shop_id, main_account_id,code,envStore) {
   let param = {};
   timest = new Date().getTime() / 1000;
   let path = '/api/v2/auth/token/get'
-  let baseString = `${envStore && envStore.partner_id ? envStore.partner_id : partner_id}` + path + timest;
-  let result_sign = sign(baseString);
+  let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest;
+  let result_sign = sign(baseString,envStore);
 
   param.partner_id = partner_id;
   param.timestamp = timest;
@@ -170,7 +170,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
   timest = new Date().getTime() / 1000;
   let path = '/api/v2/auth/access_token/get'
   let baseString = partner_id + path + timest;
-  let result_sign = sign(baseString);
+  let result_sign = sign(baseString,envStore);
 
   param.partner_id = partner_id;
   param.timestamp = timest;
@@ -197,7 +197,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
         const rs = eq(
           `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
         )
-        if (rs && rs.text) console.log(rs+"sasa")
+        if (rs && rs.text) console.log(rs)
         else {
           getEnvStores()
           resolve(response.data.access_token)

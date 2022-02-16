@@ -484,7 +484,7 @@ router.post('/product/create', async function (req, res) {
 
             }
 
-            let hitAPI = await apiTokped.createProductV3(shop_id, product_name, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
+            let hitAPI = await apiTokped.createProductV3(req.envStore,shop_id, product_name, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
                 , arrayImage, videos, variantTokped)
             res.status(hitAPI.code).send(hitAPI);
@@ -1332,7 +1332,7 @@ router.post('/product/update', async function (req, res) {
 
             }
 
-            let hitAPI = await apiTokped.updateProductV3(shop_id, product_name, product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
+            let hitAPI = await apiTokped.updateProductV3(req.envStore,shop_id, product_name, product_id, Number(category_id), 'IDR', Number(price), status_tokped, minimum_order, weight, u_weight, kondisi
                 , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, Number(stock), wholesale_tokped, preorderTokopedia
                 , arrayImage, videos, variantTokped)
             res.status(hitAPI.code).send(hitAPI);
@@ -1715,7 +1715,7 @@ router.get('/products', async function (req, res) {
     } else {
         if (marketplace == "tokopedia") {
             // let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1);
-            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', (req.envStore ? req.envStore : '')) // env
+            let hitAPI = await apiTokped.getProduct(req.envStore,'shopid', search.productid, search.product_url, shop_id, page, limit, 1, '') // env
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -1723,7 +1723,7 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getProducts(shop_id, "username");
+            let hitAPI = await apiBlibli.getProducts(shop_id, "lazuardiqayuma@gmail.com");
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -1758,7 +1758,7 @@ router.get('/product', async function (req, res) {
         response.message = "Parameter productId is required"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProduct('pid', productId, search.product_url, shop_id, null, null, 1, null);
+            let hitAPI = await apiTokped.getProduct(req.envStore,'pid', productId, search.product_url, shop_id, null, null, 1, null);
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -1810,7 +1810,7 @@ router.post('/product/update_price', async function (req, res) {
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.updateProductPrice(shop_id, new_price, product_id);
+            let hitAPI = await apiTokped.updateProductPrice(req.envStore,shop_id, new_price, product_id);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -1860,7 +1860,7 @@ router.post('/product/update_stock', async function (req, res) {
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.updateProductStock(shop_id, new_stock, product_id);
+            let hitAPI = await apiTokped.updateProductStock(req.envStore,shop_id, new_stock, product_id);
             console.log(hitAPI);
             res.send(hitAPI);
             return;
@@ -1904,7 +1904,7 @@ router.delete('/product/delete', async function (req, res) {
         response.message = "Parameter product_id is required"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.deleteProduct(shop_id, product_id);
+            let hitAPI = await apiTokped.deleteProduct(req.envStore,shop_id, product_id);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -1964,7 +1964,7 @@ router.post('/product/update_state', async function (req, res) {
         response.message = "Parameter product_id is required"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.updateProductState(state, shop_id, product_id);
+            let hitAPI = await apiTokped.updateProductState(req.envStore,state, shop_id, product_id);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2006,7 +2006,7 @@ router.get('/product/category', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getCategories(keyword);
+            let hitAPI = await apiTokped.getCategories(req.envStore,keyword);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2044,7 +2044,7 @@ router.get('/product/etalase', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getAllEtalase(shop_id);
+            let hitAPI = await apiTokped.getAllEtalase(req.envStore,shop_id);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2093,7 +2093,7 @@ router.get('/product/variant', async function (req, res) {
         response.message = "Parameter category_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProductVariant("cat_id", null, category_id);
+            let hitAPI = await apiTokped.getProductVariant(req.envStore,"cat_id", null, category_id);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2199,7 +2199,7 @@ router.get('/brands', async function (req, res) {
                 return;
             }
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getBrands(shop_id, "username", keyword, page, limit);
+            let hitAPI = await apiBlibli.getBrands(shop_id, "lazuardiqayuma@gmail.com", keyword, page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -2277,7 +2277,7 @@ router.get('/product/creation-status', async function (req, res) {
         response.message = "Parameter requestId is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getStatusProduct(shop_id, requestId);
+            let hitAPI = await apiTokped.getStatusProduct(req.envStore,shop_id, requestId);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2339,7 +2339,7 @@ router.get('/product/attribute', async function (req, res) {
         response.message = "possible language is en(English), vi(Vietnamese), id(Indonesian), th(Thai), zh-Hant(Traditional Chinese), zh-Hans(Simplified Chinese), ms-my(Malaysian Malay), pt-br(Brazil). default value is 'id"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getStatusProduct(shop_id, requestId);
+            let hitAPI = await apiTokped.getStatusProduct(req.envStore,shop_id, requestId);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2405,7 +2405,7 @@ router.post('/request-pickup', async function (req, res) {
                         res.status(response.code).send(response);
                         return;
                     } else {
-                        hitAPI = await apiTokped.requestPickup(element.order_id, shop_id);
+                        hitAPI = await apiTokped.requestPickup(req.envStore,element.order_id, shop_id);
                         if (hitAPI.code != 200) {
                             res.status(hitAPI.code).send(hitAPI);
                             return;
@@ -2826,7 +2826,7 @@ router.get('/product/discussion/list', async function (req, res) {
         response.message = "Parameter productId is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProductDiscussion(shop_id, productId, page, limit)
+            let hitAPI = await apiTokped.getProductDiscussion(req.envStore,shop_id, productId, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2978,7 +2978,7 @@ router.get('/shop_info', async function (req, res) {
         response.message = "Parameter shop_id is required"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getShopInfo(shop_id, page, limit);
+            let hitAPI = await apiTokped.getShopInfo(req.envStore,shop_id, page, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -3069,12 +3069,12 @@ router.post('/shop_info/update', async function (req, res) {
                         response.code = 400
                         response.message = "Field close_note on body is required if action is close"
                     } else {
-                        let hitAPI = await apiTokped.updateShopInfo(shop_id, action, moment(start_date).format("YYYYMMDD"), moment(end_date).format("YYYYMMDD"), close_note, close_now);
+                        let hitAPI = await apiTokped.updateShopInfo(req.envStore,shop_id, action, moment(start_date).format("YYYYMMDD"), moment(end_date).format("YYYYMMDD"), close_note, close_now);
                         res.send(hitAPI);
                         return;
                     }
                 } else {
-                    let hitAPI = await apiTokped.updateShopInfo(shop_id, action, start_date, end_date, close_note, close_now);
+                    let hitAPI = await apiTokped.updateShopInfo(req.envStore,shop_id, action, start_date, end_date, close_note, close_now);
                     res.send(hitAPI);
                     return;
                 }
@@ -3162,7 +3162,7 @@ router.get('/products_', async function (req, res) {
     } else {
         marketplace = req.envStore.marketplace
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getProduct('shopid', search.productid, search.product_url, shop_id, page, limit, 1, '', req.envStore) // env
+            let hitAPI = await apiTokped.getProduct(req.envStore,'shopid', search.productid, search.product_url, shop_id, page, limit, 1, '') // env
             res.status(hitAPI.code).send(hitAPI)
             return
         } else if (marketplace == "shopee") {

@@ -56,7 +56,7 @@ router.get('/orders', async function (req, res) {
     response.message = "Parameter end_time format is YYYY-MM-DD"
   } else {
     if (marketplace == "tokopedia") {
-      let hitAPI = await apiTokped.getOrders(unixTms(start_time), unixTms(end_time), page, limit, shop_id)
+      let hitAPI = await apiTokped.getOrders(req.envStore,unixTms(start_time), unixTms(end_time), page, limit, shop_id)
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "shopee") {
@@ -100,7 +100,7 @@ router.get('/order', async function (req, res) {
     response.message = "Parameter orderid is required"
   } else {
     if (marketplace == "tokopedia") {
-      let hitAPI = await apiTokped.getSingleOrder(orderid, invoice_num)
+      let hitAPI = await apiTokped.getSingleOrder(req.envStore,orderid, invoice_num)
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "shopee") {
@@ -169,7 +169,7 @@ router.post('/process/order', async function (req, res) {
             return;
           } else {
             orderIds.push(element.order_id);
-            hitAPI = await apiTokped.orderAccept(element.order_id)
+            hitAPI = await apiTokped.orderAccept(req.envStore,element.order_id)
             if (hitAPI.code != 200) {
               res.status(hitAPI.code).send(hitAPI);
               return;
@@ -200,7 +200,7 @@ router.post('/process/order', async function (req, res) {
             res.status(response.code).send(response)
             return;
           } else {
-            hitAPI = await apiTokped.orderReject(element.order_id, "5", element.cancel_reason)
+            hitAPI = await apiTokped.orderReject(req.envStore,element.order_id, "5", element.cancel_reason)
             if (hitAPI.code != 200) {
               res.status(hitAPI.code).send(hitAPI);
               return;

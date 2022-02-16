@@ -1,6 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
-
+const db = require('mariadb')
+const {conf, env} = require('../conf')
 
 function jsonS(d) {return JSON.stringify(d)}
 function jsonP(d) {return d ? JSON.parse(d) : {}}

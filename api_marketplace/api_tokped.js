@@ -7,8 +7,8 @@ let fs_id = 15991
 
 
 
-function encodeToBase64(client_id, client_secret) {
-  var s = Buffer.from(`${client_id}:${client_secret}`).toString('base64')
+function encodeToBase64(envStore) {
+  var s = Buffer.from(`${envStore && envStore.clientid ? envStore.clientid : client_id}:${envStore && envStore.clientkey ? envStore.clientkey : client_secret}`).toString('base64')
   return s;
 }
 
@@ -17,7 +17,7 @@ function getToken(envStore) { // env
   let urlGetToken = 'https://accounts.tokopedia.com/token';
 
   // let encodedString = encodeToBase64(client_id, client_secret);
-  let encodedString = encodeToBase64((envStore && envStore.clientid ? envStore.clientid : client_id), (envStore && envStore.clientkey ? envStore.clientkey : client_secret)) // env
+  let encodedString = encodeToBase64(envStore)// env
   return new Promise(function (resolve, reject) {
     axios({
       method: 'post',
@@ -71,13 +71,15 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
     axios(
       config
     ).then(function (response) {
-      console.log(response);
+      console.log(response.config);
+      console.log(response.data);
       responseData.code = response.status;
       responseData.message = response.data.header.messages;
       responseData.data = response.data.data
       resolve(responseData);
     }).catch((e) => {
-      console.log(e.response);
+      console.log(e.response.config);
+      console.log(e.response.data);
       responseData.code = e.response.status;
       if (e.response.status == 401) {
         responseData.message = "401 Authorization Required"
@@ -94,7 +96,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
 }
 
 //https://developer.tokopedia.com/openapi/guide/#/order/getsingleorder
-function getSingleOrder(order_id, invoice_num) {
+function getSingleOrder(envStore,order_id, invoice_num) {
   let params = {};
   //required
   if (order_id) params.order_id = order_id
@@ -102,12 +104,12 @@ function getSingleOrder(order_id, invoice_num) {
   //optional
   if (invoice_num) params.invoice_num = invoice_num
 
-  return hitApi("get", `/v2/fs/${fs_id}/order`, params);
+  return hitApi("get", `/v2/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/order`, params,null,envStore);
 }
 
 
 //https://developer.tokopedia.com/openapi/guide/#/order/getallorder
-function getOrders(from_date, to_date, page=1, per_page=50, shop_id, warehouse_id, status) {
+function getOrders(envStore,from_date, to_date, page=1, per_page=50, shop_id, warehouse_id, status) {
   let params = {};
   //required
   params.fs_id = fs_id
@@ -122,11 +124,11 @@ function getOrders(from_date, to_date, page=1, per_page=50, shop_id, warehouse_i
   if (status) params.status = status
 
 
-  return hitApi('get', '/v2/order/list', params);
+  return hitApi('get', '/v2/order/list', params,null,envStore);
 }
 
 // https://developer.tokopedia.com/openapi/guide/#/order/nack?id=order-reject-reason
-function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_close_note, empty_products) {
+function orderReject(envStore,order_id, reason_code, reason, shop_close_end_date, shop_close_note, empty_products) {
   let params = {};
   let body = {};
   //required
@@ -141,35 +143,35 @@ function orderReject(order_id, reason_code, reason, shop_close_end_date, shop_cl
   if (shop_close_note) body.shop_close_note = shop_close_note
   if (empty_products) body.empty_products = empty_products
 
-  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/nack`, params,body);
+  return hitApi('post', `/v1/order/${order_id}/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/nack`, params,body,envStore);
 }
 
 
 //https://developer.tokopedia.com/openapi/guide/#/order/ack
 //order id required
 //fs_id  required
-function orderAccept(order_id) {
+function orderAccept(envStore,order_id) {
   let params = {};
   if (order_id) params.order_id = order_id
   params.fs_id = fs_id
-  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/ack`);
+  return hitApi('post', `/v1/order/${order_id}/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/ack`,null,params,envStore);
 }
 
 //https://developer.tokopedia.com/openapi/guide/#/order/requestpickup
 //fs_id required
-function requestPickup(order_id, shop_id) {
+function requestPickup(envStore,order_id, shop_id) {
   let body = {};
   //required
   if (order_id) body.order_id = Number(order_id)
   if (shop_id) body.shop_id = Number(shop_id)
 
-  return hitApi('post', `/inventory/v1/fs/${fs_id}/pick-up`, null, body);
+  return hitApi('post', `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/pick-up`, null, body,envStore);
 }
 
 
 //https://developer.tokopedia.com/openapi/guide/#/order/cobcod
 //fs_id required
-function requestCOBCOD(order_id, shop_id, warehouse_id, per_page, first_order_id, next_order_id) {
+function requestCOBCOD(envStore,order_id, shop_id, warehouse_id, per_page, first_order_id, next_order_id) {
   let params = {};
   //optional
   if (order_id) params.order_id = order_id
@@ -180,18 +182,18 @@ function requestCOBCOD(order_id, shop_id, warehouse_id, per_page, first_order_id
   if (first_order_id) params.first_order_id = first_order_id
   if (next_order_id) params.next_order_id = next_order_id
 
-  return hitApi('post', `/v1/fs/${fs_id}/fulfillment_order`, params, {});
+  return hitApi('post', `/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/fulfillment_order`, params, {},envStore);
 }
 
 //https://developer.tokopedia.com/openapi/guide/#/order/updateorderstatus
 // all param required
-function updateOrderStatus(order_id, order_status, shipping_ref_num) {
+function updateOrderStatus(envStore,order_id, order_status, shipping_ref_num) {
 
   let body = {}
   if (order_status) body.order_status = order_status
   if (shipping_ref_num) body.shipping_ref_num = shipping_ref_num
 
-  return hitApi('post', `/v1/order/${order_id}/fs/${fs_id}/status`, {}, body);
+  return hitApi('post', `/v1/order/${order_id}/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/status`, {}, body,envStore);
 
 }
 
@@ -199,19 +201,19 @@ function updateOrderStatus(order_id, order_status, shipping_ref_num) {
 //https://developer.tokopedia.com/openapi/guide/#/category/getallcategory
 //fs_id required
 //keyword si optional
-function getCategories(keyword) {
+function getCategories(envStore,keyword) {
   let params = {};
   //optional
   if (keyword) params.keyword = keyword
 
-  let path = `/inventory/v1/fs/${fs_id}/product/category`
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/category`
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
 // function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku) {
-function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku, envStore) {
+function getProduct(envStore,getBy, product_id, product_url, shop_id, page = 1, per_page = 50, sort = 1, sku) {
   let params = {};
   //optional
   if (getBy == "pid") {
@@ -225,7 +227,7 @@ function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page 
     if (per_page !== null) params.per_page = per_page
     if (sort) params.sort = sort
   }
-  // let path = `/inventory/v1/fs/${fs_id}/product/info`
+  // let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/info`
   let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/info` // env
 
   // return hitApi('get', path, params, {});
@@ -235,25 +237,25 @@ function getProduct(getBy, product_id, product_url, shop_id, page = 1, per_page 
 
 
 
-function getProductVariant(getBy, product_id, cat_id) {
-  let path = `/inventory/v1/fs/${fs_id}/category/get_variant`;
+function getProductVariant(envStore,getBy, product_id, cat_id) {
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/category/get_variant`;
   let params = {};
   //optional
   if (getBy == "product_id") {
     if (product_id) {
       params.product_id = product_id
-      path = `/inventory/v1/fs/${fs_id}/product/variant/${product_id}`
+      path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/variant/${product_id}`
     }
   } else if (getBy == "cat_id") {
     if (cat_id) params.cat_id = cat_id
   }
 
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function updateProductPrice(shop_id, new_price, product_id) {
+function updateProductPrice(envStore,shop_id, new_price, product_id) {
   let params = {};
   let bodyObj = {};
   //required
@@ -270,12 +272,12 @@ function updateProductPrice(shop_id, new_price, product_id) {
   console.log(body);
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${fs_id}/price/update`;
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/price/update`;
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
-function updateState(shop_id, unlist, product_id) {
+function updateState(envStore,shop_id, unlist, product_id) {
   let params = {};
   //required
 
@@ -290,12 +292,12 @@ function updateState(shop_id, unlist, product_id) {
 
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${fs_id}/price/update`;
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/price/update`;
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
-function deleteProduct(shop_id, product_id) {
+function deleteProduct(envStore,shop_id, product_id) {
   let body = {};
   let params = {};
   //required
@@ -304,12 +306,12 @@ function deleteProduct(shop_id, product_id) {
   }
   if (shop_id) params.new_price = shop_id
 
-  let path = `/v3/products/fs/:f/delete`;
+  let path = `/v3/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/delete`;
 
-  return hitApi('post', path, params, JSON.parse(body));
+  return hitApi('post', path, params, JSON.parse(body),envStore);
 }
 
-function updateProductStock(shop_id, new_stock, product_id) {
+function updateProductStock(envStore,shop_id, new_stock, product_id) {
   let body = [];
   let params = {};
   let bodyObj={};
@@ -323,28 +325,28 @@ function updateProductStock(shop_id, new_stock, product_id) {
   console.log(body);
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${fs_id}/stock/update`;
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/stock/update`;
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
 
-function getShopInfo(shop_id, page = 0, per_page = 50) {
+function getShopInfo(envStore,shop_id, page = 0, per_page = 50) {
   let params = {};
   //optional
   if (shop_id) params.shop_id = shop_id
   if (page) params.page = page
   if (per_page) params.per_page = per_page
 
-  let path = `/v1/shop/fs/${fs_id}/shop-info`;
+  let path = `/v1/shop/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/shop-info`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
 
 
-function getAllShowCase(shop_id, page = 0, per_page = 50, hide_zero, display) {
+function getAllShowCase(envStore,shop_id, page = 0, per_page = 50, hide_zero, display) {
   let params = {};
   //required
   if (shop_id) params.shop_id = shop_id
@@ -355,24 +357,24 @@ function getAllShowCase(shop_id, page = 0, per_page = 50, hide_zero, display) {
   if (hide_zero) params.hide_zero = hide_zero
   if (display) params.display = display
 
-  let path = `/v1/showcase/fs/${fs_id}/get`;
+  let path = `/v1/showcase/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/get`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function getAllEtalase(shop_id) {
+function getAllEtalase(envStore,shop_id) {
   let params = {};
   //required
   if (shop_id) params.shop_id = shop_id
 
-  let path = `/inventory/v1/fs/${fs_id}/product/etalase`;
+  let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/product/etalase`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function createProductV3(shop_id, name, category_id, price_currency, price, status, min_order, weight, weight_unit, condition
+function createProductV3(envStore,shop_id, name, category_id, price_currency, price, status, min_order, weight, weight_unit, condition
   , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, stock, wholesale, preorder
   , pictures, videos, variant) {
   let body = {};
@@ -415,13 +417,13 @@ function createProductV3(shop_id, name, category_id, price_currency, price, stat
   body.products = products
 
   if (shop_id) params.shop_id = shop_id
-  let path = `/v3/products/fs/${fs_id}/create`;
+  let path = `/v3/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/create`;
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
 
-function updateProductV3(shop_id, name, id,category_id, price_currency, price, status, min_order, weight, weight_unit, condition
+function updateProductV3(envStore,shop_id, name, id,category_id, price_currency, price, status, min_order, weight, weight_unit, condition
   , dimension, custom_product_logistics, annotations, etalase, description, is_must_insurance, is_free_return, sku, stock, wholesale, preorder
   , pictures, videos, variant) {
   let body = {};
@@ -465,41 +467,41 @@ function updateProductV3(shop_id, name, id,category_id, price_currency, price, s
   body.products = products
 
   if (shop_id) params.shop_id = shop_id
-  let path = `/v3/products/fs/${fs_id}/edit`;
+  let path = `/v3/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/edit`;
 
-  return hitApi('patch', path, params, body);
+  return hitApi('patch', path, params, body,envStore);
 }
 
 
-function updateProductState(state, shop_id, product_id) {
+function updateProductState(envStore,state, shop_id, product_id) {
   let body = {};
   let params = {};
-  let path = `/v1/products/fs/${fs_id}/inactive`;
+  let path = `/v1/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/inactive`;
   //required
   if (product_id) body.product_id = [Number(product_id)]
   if (shop_id) params.shop_id = shop_id
-  if (state) path = `/v1/products/fs/${fs_id}/active`;
+  if (state) path = `/v1/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/active`;
 
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
 
-function deleteProduct(shop_id, product_id) {
+function deleteProduct(envStore,shop_id, product_id) {
   let body = {};
   let params = {};
-  let path=`/v3/products/fs/${fs_id}/delete`;
+  let path=`/v3/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/delete`;
   //required
   if (product_id) body.product_id = [Number(product_id)]
   if (shop_id) params.shop_id = shop_id
 
 
-  return hitApi('post', path, params, body);
+  return hitApi('post', path, params, body,envStore);
 }
 
 
 
-function getAllSettlements(shop_id, page = 0, per_page = 50, from_date, to_date) {
+function getAllSettlements(envStore,shop_id, page = 0, per_page = 50, from_date, to_date) {
   let params = {};
   //required
   params.page = page
@@ -507,13 +509,13 @@ function getAllSettlements(shop_id, page = 0, per_page = 50, from_date, to_date)
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
 
-  let path = `/v1/fs/${fs_id}/${shop_id}/saldo-history`;
+  let path = `/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/${shop_id}/saldo-history`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function getChat(shop_id, page = 0, per_page = 50, filter = "all") {
+function getChat(envStore,shop_id, page = 0, per_page = 50, filter = "all") {
   let params = {};
   //required
   if (shop_id) params.shop_id = shop_id
@@ -522,12 +524,12 @@ function getChat(shop_id, page = 0, per_page = 50, filter = "all") {
   if (filter) params.filter = filter
 
 
-  let path = `/v1/chat/fs/${fs_id}/messages`;
+  let path = `/v1/chat/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/messages`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
-function getReply(shop_id, page = 0, per_page = 50, msg_id) {
+function getReply(envStore,shop_id, page = 0, per_page = 50, msg_id) {
   let params = {};
   //required
   if (shop_id) params.shop_id = shop_id
@@ -535,59 +537,59 @@ function getReply(shop_id, page = 0, per_page = 50, msg_id) {
   if (per_page) params.per_page = per_page
 
 
-  let path = `/v1/chat/fs/${fs_id}/messages/${msg_id}/replies`;
+  let path = `/v1/chat/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/messages/${msg_id}/replies`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
-function postReply(shop_id, message, msg_id) {
+function postReply(envStore,shop_id, message, msg_id) {
   let body = {};
   //required
   if (shop_id) body.shop_id = Number(shop_id)
   if (message) body.message = message
 
 
-  let path = `/v1/chat/fs/${fs_id}/messages/${msg_id}/reply`;
+  let path = `/v1/chat/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/messages/${msg_id}/reply`;
 
-  return hitApi('post', path, {}, body);
+  return hitApi('post', path, {}, body,envStore);
 }
 
 
-function getStatusProduct(shop_id, upload_id) {
+function getStatusProduct(envStore,shop_id, upload_id) {
   let params = {};
   //required
   if (shop_id) params.shop_id = Number(shop_id)
-  let path = `/v2/products/fs/${fs_id}/status/${upload_id}`;
+  let path = `/v2/products/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/status/${upload_id}`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function getResolutionTicket(shop_id,start_date ,end_date) {
+function getResolutionTicket(envStore,shop_id,start_date ,end_date) {
   let params = {};
   //required
   if (shop_id) params.shop_id = Number(shop_id)
   if (start_date) params.start_date =start_date
   if (end_date) params.end_date =end_date
-  let path = `/resolution/v1/fs/${fs_id}/ticket`;
+  let path = `/resolution/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/ticket`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
 
-function getProductDiscussion(shop_id,product_id ,page,per_page) {
+function getProductDiscussion(envStore,shop_id,product_id ,page,per_page) {
   let params = {};
   //required
   if (shop_id) params.shop_id = Number(shop_id)
   if (product_id) params.product_id =product_id
   if (page) params.page =page
   if (per_page) params.per_page =per_page
-  let path = `/v1/discussion/fs/${fs_id}/list`;
+  let path = `/v1/discussion/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/list`;
 
-  return hitApi('get', path, params, {});
+  return hitApi('get', path, params, {},envStore);
 }
 
-function updateShopInfo(shop_id,action ,start_date,end_date,close_note,close_now) {
+function updateShopInfo(envStore,shop_id,action ,start_date,end_date,close_note,close_now) {
   let params = {};
   
   //required
@@ -597,9 +599,9 @@ function updateShopInfo(shop_id,action ,start_date,end_date,close_note,close_now
   if (end_date) params.end_date =end_date
   if (close_note) params.close_note =close_note
   if (close_now) params.close_now =close_now
-  let path = `/v2/shop/fs/${fs_id}/shop-status`;
+  let path = `/v2/shop/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/shop-status`;
 
-  return hitApi('post', path, {}, params);
+  return hitApi('post', path, {}, params,envStore);
 }
 
 

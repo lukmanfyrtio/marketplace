@@ -36,7 +36,7 @@ router.get('/chats', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getChat(shop_id, page, limit)
+            let hitAPI = await apiTokped.getChat(req.envStore,req.envStore,shop_id, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -87,7 +87,7 @@ router.get('/reply', async function (req, res) {
         response.message = "Parameter chatid is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getReply(shop_id, page, limit, chatid);
+            let hitAPI = await apiTokped.getReply(req.envStore,shop_id, page, limit, chatid);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -143,7 +143,7 @@ router.post('/reply', async function (req, res) {
         response.message = "Parameter message is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.postReply(shop_id, message, chatid);
+            let hitAPI = await apiTokped.postReply(req.envStore,shop_id, message, chatid);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
