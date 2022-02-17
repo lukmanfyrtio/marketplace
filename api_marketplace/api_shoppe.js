@@ -151,6 +151,7 @@ async function getToken(shop_id, main_account_id,code,envStore) {
       data: body
 
     }).then(function (response) {
+      console.log(response);
       const rs = eq(
         `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
       )
@@ -160,6 +161,7 @@ async function getToken(shop_id, main_account_id,code,envStore) {
         resolve(response.data)
       }
     }).catch((e) => {
+      console.log(e.response);
       resolve(e.response.data);
     });
   });
@@ -193,6 +195,8 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
       data: body
 
     }).then(function (response) {
+      console.log(response.config.data);
+      console.log(response.data);
       if(response.data.access_token){
         const rs = eq(
           `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
