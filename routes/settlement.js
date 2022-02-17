@@ -60,7 +60,7 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getAllSettlements(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit)
+            let hitAPI = await apiBlibli.getAllSettlements(req.envStore,shop_id, unixTms(start_time), unixTms(end_time), page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -102,7 +102,7 @@ router.get('/settlement', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getSingleSettlement(orderid, shop_id, "username")
+            let hitAPI = await apiBlibli.getSingleSettlement(req.envStore,orderid, shop_id)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {

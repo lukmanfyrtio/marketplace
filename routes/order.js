@@ -64,7 +64,7 @@ router.get('/orders', async function (req, res) {
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "blibli") {
-      let hitAPI = await apiBlibli.getOrders(shop_id, "username", unixTms(start_time), unixTms(end_time), page, limit);
+      let hitAPI = await apiBlibli.getOrders(req.envStore,shop_id, unixTms(start_time), unixTms(end_time), page, limit);
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
@@ -110,7 +110,7 @@ router.get('/order', async function (req, res) {
     } else if (marketplace == "blibli") {
       let pid = orderid.split("-");
       let oin = pid[1] ? pid[1] : 0;
-      let hitAPI = await apiBlibli.getSingleOrder(pid[0], oin);
+      let hitAPI = await apiBlibli.getSingleOrder(req.envStore,pid[0], oin);
       res.send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
@@ -280,7 +280,7 @@ router.post('/process/order', async function (req, res) {
             orderIds.push(element.order_id);
           }
         };
-        let hitAPI = await apiBlibli.acceptOrder(orderIds, shop_id)
+        let hitAPI = await apiBlibli.acceptOrder(req.envStore,orderIds, shop_id)
         res.status(hitAPI.code).send(hitAPI);
         return;
       }

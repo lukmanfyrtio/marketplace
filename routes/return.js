@@ -113,7 +113,7 @@ router.get('/return', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter order_item_no is required on blibli"
             } else {
-                let hitAPI = await apiBlibli.getSingleReturn(shop_id, return_id, order_no, order_item_no)
+                let hitAPI = await apiBlibli.getSingleReturn(req.envStore,shop_id, return_id, order_no, order_item_no)
                 res.send(hitAPI);
                 return;
             }
