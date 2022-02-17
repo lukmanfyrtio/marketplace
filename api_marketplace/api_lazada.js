@@ -115,6 +115,10 @@ async function hitApi(envStore,method = "", path = "", query = {}, body = {}, he
     });
 }
 
+function getAuthLink(envStore){
+    let urlLazada=`https://auth.lazada.com/oauth/authorize?response_type=code&force_auth=true&redirect_uri=${envStore && envStore.code_2 ? envStore.code_2 : 'https://wms.gosyenretail.co.id/'}&client_id=${envStore && envStore.clientid ? envStore.clientid : appKey}`;
+    return urlLazada;
+}
 
 function getRefreshToken(envStore,refreshtoken) {
     let path_get_token = '/auth/token/refresh'
@@ -175,9 +179,16 @@ function getToken(envStore,code) {
             console.log(response.config.data);
             console.log(response.data);
             if (response.data.access_token) {
-                resolve(response.data.access_token);
+                const rs = eq(
+                    `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${envStore.shop_id}' and marketplace='${envStore.marketplace}'`
+                  )
+                  if (rs && rs.text) console.log(rs)
+                  else {
+                    getEnvStores()
+                    resolve(response.data.access_token)
+                  }
             } else {
-                resolve("token");
+                resolve(`${envStore && envStore.token ? envStore.token : ''}`);
             }
 
         }).catch((e) => {
@@ -510,4 +521,4 @@ function sellerPostReview(envStore,id, content) {
 
     return hitApi(envStore,"get", path, param, {}, {})
 }
-module.exports = { removeProduct,orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct, sellerPostReview };
+module.exports = {getAuthLink,getToken, getRefreshToken,removeProduct,orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct, sellerPostReview };
