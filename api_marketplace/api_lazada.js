@@ -136,9 +136,9 @@ function getRefreshToken(envStore,refreshtoken) {
             params: param,
             headers: header
 
-        }).then(function (response) {
+        }).then(async function (response) {
             if (response.data.access_token) {
-                const rs = eq(
+                const rs =await eq(
                     `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${envStore.shop_id}' and marketplace='${envStore.marketplace}'`
                   )
                   if (rs && rs.text) console.log(rs)
@@ -173,13 +173,13 @@ function getToken(envStore,code) {
             params: param,
             headers: header
 
-        }).then(function (response) {
+        }).then(async function (response) {
             console.log(response.config.url);
             console.log(response.config.params);
             console.log(response.config.data);
             console.log(response.data);
             if (response.data.access_token) {
-                const rs = eq(
+                const rs =await eq(
                     `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${envStore.shop_id}' and marketplace='${envStore.marketplace}'`
                   )
                   if (rs && rs.text) console.log(rs)
