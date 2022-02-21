@@ -58,7 +58,7 @@ router.get('/return/list', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getAllReturns(shop_id, page, limit)
+            let hitAPI = await apiBlibli.getAllReturns(req.envStore,shop_id, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
