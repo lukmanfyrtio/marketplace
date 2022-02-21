@@ -3084,7 +3084,7 @@ router.post('/request-pickup', async function (req, res) {
                             return;
                         }
                         if (response.code == 200) {
-                            hitAPI = await apiBlibli.bigProductPickup(req.envStore, element.package_id, shop_id, unixTms(element.delivery_date_start), unixTms(element.delivery_date_end), element.courier_name, element.courier_type, element.settlement_code)
+                            hitAPI = await apiBlibli.bigProductPickup(req.envStore, element.package_id, shop_id, unixTms(element.delivery_date_start+" 00:00:00"), unixTms(element.delivery_date_end+" 23:59:59"), element.courier_name, element.courier_type, element.settlement_code)
                             if (hitAPI.code != 200) {
                                 res.status(hitAPI.code).send(hitAPI);
                                 return;
@@ -3347,7 +3347,7 @@ router.get('/product/discussion/list', async function (req, res) {
             return;
             }
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getProductDiscussion(req.envStore, shop_id, unixTms(start_time), unixTms(end_time), page, limit)
+            let hitAPI = await apiBlibli.getProductDiscussion(req.envStore, shop_id,  unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {

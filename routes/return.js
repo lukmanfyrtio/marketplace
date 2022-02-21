@@ -54,7 +54,7 @@ router.get('/return/list', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getReturns(shop_id, page, limit, unixTms(start_time), unixTms(end_time), req.envStore)
+            let hitAPI = await apiShoppe.getReturns(shop_id, page, limit, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {

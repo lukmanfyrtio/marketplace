@@ -56,11 +56,11 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllSettlement(shop_id,unixTms(start_time), unixTms(end_time),page,limit,req.envStore)
+            let hitAPI = await apiShoppe.getAllSettlement(shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"),page,limit,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getAllSettlements(req.envStore,shop_id, unixTms(start_time), unixTms(end_time), page, limit)
+            let hitAPI = await apiBlibli.getAllSettlements(req.envStore,shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
