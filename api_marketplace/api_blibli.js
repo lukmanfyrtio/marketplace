@@ -28,7 +28,6 @@ function generateCommonHeaders(envStore,reqMethod, body = "", reqContentType = "
     let milliseconds = timezone.toDate().getTime();
     let dateNow = timezone.format("ddd MMM DD HH:mm:ss z YYYY");
 
-    console.log(milliseconds);
     let reqBody = body !== "" ? hashmd5(JSON.stringify(body)) : "";
     urlReq = uri + urlReq;
     let meta = urlReq.split("/proxy");
@@ -44,8 +43,6 @@ function generateCommonHeaders(envStore,reqMethod, body = "", reqContentType = "
 
 
     let raw_signature = `${reqMethod.toUpperCase()}\n${reqBody}\n${reqContentType}\n${dateNow}\n${raw}`;
-    console.log(signKey);
-    console.log(raw_signature);
     let headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -98,6 +95,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
             }
 
         }).then(function (response) {
+            console.log("hit api blibli ->>")
             console.log(response.config);
             console.log(response.data);
             if (response.data.success) {
@@ -123,6 +121,7 @@ async function hitApi(method = "", path = "", query = {}, body = {}, headers = {
             resolve(responseData);
 
         }).catch((e) => {
+            console.log("hit api blibli ->>")
             console.log(e.response.config);
             console.log(e.response.data);
             responseData.code = e.response.status;

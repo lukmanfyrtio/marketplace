@@ -27,8 +27,6 @@ router.get('/settlements', async function (req, res) {
     const page = search.page;
     const limit = search.limit;
     var regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
-    console.log(!regex.test(end_time));
-    console.log(!regex.test(start_time));
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"

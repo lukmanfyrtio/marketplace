@@ -28,8 +28,6 @@ router.get('/orders', async function (req, res) {
   const end_time = search.end_time;
 
 
-  console.log(isValidDate(start_time));
-  console.log(isValidDate(end_time));
   const page = search.page;
   const limit = search.limit;
 
@@ -40,7 +38,6 @@ router.get('/orders', async function (req, res) {
     response.code = 400
     response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
   } else if (shop_id === null || shop_id === undefined) {
-    console.log(shop_id);
     response.code = 400
     response.message = "Parameter shop_id is required"
   } else if (start_time === null || start_time === undefined) {
@@ -94,7 +91,6 @@ router.get('/order', async function (req, res) {
     response.code = 400
     response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
   } else if (shop_id === null || shop_id === undefined) {
-    console.log(shop_id);
     response.code = 400
     response.message = "Parameter shop_id is required"
   } else if (orderid === null || orderid === undefined) {
@@ -194,7 +190,6 @@ router.post('/process/order', async function (req, res) {
           }
         };
         if (hitAPI.code == 200) {
-          console.log(hitAPI.code == 200);
           res.status(response.code).send(response)
           return;
         }
@@ -281,7 +276,6 @@ router.post('/process/order', async function (req, res) {
         }
       }
     } else if (marketplace == "blibli") {
-      console.log(action);
       var orderIds = []
       if (action !== "accept") {
         response.code = 400

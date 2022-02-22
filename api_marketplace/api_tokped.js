@@ -49,7 +49,6 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
   responseData.timestamp = new Date().getTime();
   // let token = await getToken();
   let token = await getToken(envStore) // env
-  console.log(token);
   headers = {
     Authorization: `Bearer ${token ? token : "token"}`
   }
@@ -71,6 +70,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
     axios(
       config
     ).then(function (response) {
+      console.log("hit api tokopedia ->>")
       console.log(response.config);
       console.log(response.data);
       responseData.code = response.status;
@@ -78,6 +78,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       responseData.data = response.data.data
       resolve(responseData);
     }).catch((e) => {
+      console.log("hit api tokopedia ->>")
       console.log(e.response.config);
       console.log(e.response.data);
       responseData.code = e.response.status;
@@ -86,6 +87,9 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       } else {
         if(e.response.data.header!==undefined&&e.response.data.header.reason!==undefined){
           responseData.message = e.response.data.header.reason ;
+          if(e.response.data){
+            responseData.data=e.response.data
+          }
         }else{
           responseData.message=e.response.data
         }
@@ -269,7 +273,6 @@ function updateProductPrice(envStore,shop_id, new_price, product_id) {
     }
   ];
 
-  console.log(body);
   if (shop_id) params.shop_id = shop_id
 
   let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/price/update`;
@@ -321,8 +324,6 @@ function updateProductStock(envStore,shop_id, new_stock, product_id) {
   if (Object.keys(bodyObj).length !== 0) {
     body.push(bodyObj)
   }
-  console.log(body);
-  console.log(body);
   if (shop_id) params.shop_id = shop_id
 
   let path = `/inventory/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/stock/update`;
@@ -509,9 +510,9 @@ function getAllSettlements(envStore,shop_id, page = 0, per_page = 50, from_date,
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
 
-  let path = `/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/${shop_id}/saldo-history`;
+  let path = `/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/shop/${shop_id}/saldo-history`;
 
-  return hitApi('get', path, params, {},envStore);
+  return hitApi('get', path, params, null,envStore);
 }
 
 

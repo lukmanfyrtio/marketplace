@@ -373,7 +373,6 @@ router.post('/product/create', async function (req, res) {
                             res.status(response.code).send(response);
                             return;
                         } else {
-                            console.log("sini");
                             price_variant = element.price;
                             stock_variant = element.stock;
                             sku_variant = element.sku;
@@ -917,7 +916,6 @@ router.post('/product/create', async function (req, res) {
                 if (preorder) {
                     let preorder_time;
                     let time_unit;
-                    console.log(preorder.duration);
                     if (preorder.duration) {
                         if (preorder.time_unit) {
                             time_unit = preorder.time_unit
@@ -1112,19 +1110,6 @@ router.post('/product/create', async function (req, res) {
                     res.status(response.code).send(response);
                     return;
                 }
-                console.log(JSON.stringify(attribute_list));
-                console.log(JSON.stringify(dimension));
-                console.log(JSON.stringify(description));
-                console.log(JSON.stringify(category_id));
-                console.log(JSON.stringify(category_id));
-                console.log(JSON.stringify(blibliImages));
-                console.log(JSON.stringify(logisticsBlibli));
-                console.log(JSON.stringify(product_name));
-                console.log(new_brand);
-                console.log(pickup_point_code);
-                console.log(preorder_blibli);
-                console.log(product_type);
-                console.log(array_variant);
 
                 let hitAPI = await apiBlibli.createProductV3(req.envStore,shop_id, attribute_list, brand_id, category_id, description, dimension, blibliImages, logisticsBlibli, product_name, new_brand, pickup_point_code
                     , null, preorder_blibli, array_variant, product_type, url_video)
@@ -1559,7 +1544,6 @@ router.post('/product/update', async function (req, res) {
                             res.status(response.code).send(response);
                             return;
                         } else {
-                            console.log("sini");
                             price_variant = element.price;
                             stock_variant = element.stock;
                             sku_variant = element.sku;
@@ -1955,7 +1939,6 @@ router.post('/product/update', async function (req, res) {
                                     if (elementVal.unit_value) attr_value.values = [elementVal.unit_value];
 
                                     attributes_value.push(attr_value);
-                                    console.log(attr_value)
                                 }
                             }
 
@@ -2237,7 +2220,6 @@ router.get('/product', async function (req, res) {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
     } else if (shop_id === null || shop_id === undefined) {
-        console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
     } else if (productId === null || productId === undefined) {
@@ -2276,7 +2258,6 @@ router.post('/product/update_price', async function (req, res) {
     const sku_id = search.sku_id;
     const marketplace = search.marketplace;
 
-    console.log(product_id);
     if (marketplace === null || marketplace === undefined || marketplace === '') {
         response.code = 400
         response.message = "Parameter marketplace is required"
@@ -2326,7 +2307,6 @@ router.post('/product/update_stock', async function (req, res) {
     const marketplace = search.marketplace;
     const sku_id = search.sku_id;
 
-    console.log(shop_id);
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
@@ -2348,7 +2328,6 @@ router.post('/product/update_stock', async function (req, res) {
     } else {
         if (marketplace == "tokopedia") {
             let hitAPI = await apiTokped.updateProductStock(req.envStore, shop_id, new_stock, product_id);
-            console.log(hitAPI);
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
@@ -2892,7 +2871,7 @@ router.post('/request-pickup', async function (req, res) {
                 return;
             } else {
                 orders.forEach(async element => {
-                    if (element.order_id == null || element.order_id == undefined) {
+                    if (!element.order_id) {
                         response.code = 400
                         response.message = "Field order_id on order list object is required"
                         res.status(response.code).send(response);
@@ -2937,9 +2916,7 @@ router.post('/request-pickup', async function (req, res) {
                         return;
                     } else {
                         hitAPI = await apiShoppe.getShipParameter(shop_id, element.order_id, req.envStore);
-                        console.log(hitAPI.code);
                         if (hitAPI.code !== 200) {
-                            console.log(hitAPI);
                             notError = false;
                             res.status(hitAPI.code).send(hitAPI);
                             return;
@@ -3220,7 +3197,6 @@ router.get('/product/reviews', async function (req, res) {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
     } else if (shop_id === null || shop_id === undefined) {
-        console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
     } else if (productId === null || productId === undefined) {
@@ -3270,7 +3246,6 @@ router.post('/product/review/reply', async function (req, res) {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
     } else if (shop_id === null || shop_id === undefined) {
-        console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
     } else if (review_id === null || review_id === undefined) {
@@ -3486,7 +3461,6 @@ router.get('/shop_info', async function (req, res) {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
     } else if (shop_id === null || shop_id === undefined) {
-        console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
     } else {
@@ -3547,7 +3521,6 @@ router.post('/shop_info/update', async function (req, res) {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
     } else if (shop_id === null || shop_id === undefined) {
-        console.log(shop_id);
         response.code = 400
         response.message = "Parameter shop_id is required"
     } else {
@@ -3563,24 +3536,38 @@ router.post('/shop_info/update', async function (req, res) {
                     if (start_date === null || start_date === undefined) {
                         response.code = 400
                         response.message = "Field start_date on body is required if action is close"
+                        res.status(response.code).send(response);
+                        return;
                     } else if (!isValidDate(start_date)) {
                         response.code = 400
                         response.message = "Field start_date on body  format is YYYY-MM-DD"
+                        res.status(response.code).send(response);
+                        return;
                     } else if (end_date === null || end_date === undefined) {
                         response.code = 400
                         response.message = "Field end_date on body is required if action is close"
+                        res.status(response.code).send(response);
+                        return;
                     } else if (!isValidDate(end_date)) {
                         response.code = 400
                         response.message = "Field end_date on body format is YYYY-MM-DD"
+                        res.status(response.code).send(response);
+                        return;
                     } else if (close_now === null || close_now === undefined) {
                         response.code = 400
                         response.message = "Field close_now on body is required if action is close"
-                    } else if (!typeof close_now == "boolean") {
+                        res.status(response.code).send(response);
+                        return;
+                    } else if (typeof close_now !== "boolean") {
                         response.code = 400
                         response.message = "Field close_now on body should be boolean"
+                        res.status(response.code).send(response);
+                        return;
                     } if (close_note === null || close_note === undefined) {
                         response.code = 400
                         response.message = "Field close_note on body is required if action is close"
+                        res.status(response.code).send(response);
+                        return;
                     } else {
                         let hitAPI = await apiTokped.updateShopInfo(req.envStore, shop_id, action, moment(start_date).format("YYYYMMDD"), moment(end_date).format("YYYYMMDD"), close_note, close_now);
                         res.send(hitAPI);

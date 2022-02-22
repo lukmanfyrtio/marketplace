@@ -71,8 +71,9 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       data: body
 
     }).then(function (response) {
-      // console.log(response.config);
-      // console.log(response.data);
+      console.log("hit api shopee ->>")
+      console.log(response.config);
+      console.log(response.data);
       responseData.code = response.status;
 
       if(response.data.msg){
@@ -87,8 +88,9 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       resolve(responseData);
 
     }).catch((e) => {
-      // console.log(e.response.config);
-      // console.log(e.response.data);
+      console.log("hit api shopee ->>")
+      console.log(e.response.config);
+      console.log(e.response.data);
       responseData.code = e.response.status;
       if (e.response.status == 403) {
         responseData.message = e.response.data.message
@@ -195,6 +197,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
       data: body
 
     }).then(async function (response) {
+      console.log("generate token by refresh token shopee ->>>");
       console.log(response.config.data);
       console.log(response.data);
       if(response.data.access_token){
@@ -208,6 +211,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
         }
       }
     }).catch((e) => {
+      console.log("generate token by refresh token shopee ->>>");
       console.log(e.config.data);
       console.log(e.response.data);
       resolve(`${envStore && envStore.token ? envStore.token : token}`);
