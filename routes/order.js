@@ -225,9 +225,10 @@ router.post('/process/order', async function (req, res) {
       }
     } else if (marketplace == "shopee") {
       let hitAPI = { code: 400 };
-      if (action != "" && action != "rejectCancellation" && action != "reject") {
+      if (action != "" && action != "rejectCancellation" && action != "reject"&& action != "acceptCancellation") {
         response.code = 400
-        response.message = "Field action is only acceptCancellation,rejectCancellation or reject for lazada marketplace"
+        response.message = "Field action is only acceptCancellation,rejectCancellation or reject for shopee marketplace"
+        res.status(response.code).send(response)
       } else if (action == 'acceptCancellation' || action == 'rejectCancellation') {
         for await (const element of orders) {
           if (element.order_id == undefined || element.order_id == null) {
@@ -236,7 +237,7 @@ router.post('/process/order', async function (req, res) {
             res.status(response.code).send(response)
             return;
           } else {
-            hitAPI = await apiShoppe.buyerCancel(shop_id, element.order_id, action == 'acceptCancellation' ? 'ACCEPT' : 'REJECT')
+            hitAPI = await apiShoppe.buyerCancel(shop_id, element.order_id, action == 'acceptCancellation' ? 'ACCEPT' : 'REJECT',req.envStore)
             if (hitAPI.code !== 200) {
               res.status(hitAPI.code).send(hitAPI);
               return;
@@ -262,7 +263,21 @@ router.post('/process/order', async function (req, res) {
             res.status(response.code).send(response)
             return;
           } else {
-            hitAPI = await apiShoppe.cancelOrder(shop_id, element.order_id, cancel_reason)
+            if (element.cancel_reason =='OUT_OF_STOCK') {
+              if(!element.item_id){
+                response.code = 400
+                response.message = "Field item_id is required if cancel_reason is OUT_OF_STOCK";
+                res.status(response.code).send(response)
+                return;
+              }else if(!element.model_id){
+                response.code = 400
+                response.message = "Field model_id is required if cancel_reason is OUT_OF_STOCK";
+                res.status(response.code).send(response)
+                return;
+              }
+            } 
+
+            hitAPI = await apiShoppe.cancelOrder(req.envStore,shop_id, element.order_id, element.cancel_reason)
             if (hitAPI.code !== 200) {
               res.status(hitAPI.code).send(hitAPI);
               return;

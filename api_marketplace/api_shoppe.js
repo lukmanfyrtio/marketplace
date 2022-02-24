@@ -49,9 +49,9 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
   let timest;
   timest = Math.round(new Date().getTime() / 1000)
   //set param common
-  let token=acc_token?acc_token:envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
+  let token=(acc_token!==null&&acc_token!==undefined)?acc_token:envStore && envStore.refresh ?await getRefreshToken(query.shop_id,null,envStore.refresh,envStore) : envStore && envStore.token ?envStore.token :'';
   query.timestamp = Number(timest);
-  query.partner_id = `${envStore && envStore.clientid ? envStore.clientid : partner_id}`;
+  query.partner_id = Number(`${envStore && envStore.clientid ? envStore.clientid : partner_id}`);
 
   if (query.shop_id) query.access_token =token;
 
@@ -84,11 +84,18 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
         responseData.message = response.data.message;
       }
 
-      responseData.data = response.data.response;
+      if(response.data.response){
+        responseData.data = response.data.response;
+      }else{
+        responseData.data = response.data;
+      }
+      if(response.data.error!==''){
+        responseData.code =400;
+      }
       resolve(responseData);
 
     }).catch((e) => {
-      console.log("hit api shopee ->>")
+      console.log("hit api shopee catch->>")
       console.log(e.response.config);
       console.log(e.response.data);
       responseData.code = e.response.status;
@@ -227,9 +234,9 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStor
   let path = "/api/v2/order/get_order_detail";
   let param = {};
   //requset parameter
-  if (order_sn_list) param.order_sn_list = order_sn_list;
+  if (order_sn_list) param.order_sn_list = order_sn_list.toString();
   if (response_optional_fields) param.response_optional_fields = response_optional_fields;
-  param.shop_id = shop_id;
+  param.shop_id = Number(shop_id);
 
   return hitApi(
     'get', //method
@@ -412,33 +419,33 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
 
 function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
   //path
-  let path = "/api/v2/product/update_stock"
+  let path = "/api/v2/logistics/ship_order"
   let param = {};
   param.shop_id = shop_id;
 
   let body = {};
   if (order_sn) body.order_sn = order_sn
 
-  if (package_number) body.package_number = package_number
+  if (package_number) body.package_number = package_number.toString()
 
   let pickup={}
-  if (address_id) pickup.address_id = address_id
-  if (pickup_time_id) pickup.pickup_time_id = pickup_time_id
-  if (tracking_number) pickup.tracking_number = tracking_number
+  if (address_id) pickup.address_id =address_id=="null"?'':address_id
+  if (pickup_time_id) pickup.pickup_time_id = pickup_time_id=="null"?'':pickup_time_id
+  if (tracking_number) pickup.tracking_number = tracking_number=="null"?'':tracking_number
 
   let dropoff={}
-  if (branch_id) dropoff.branch_id = branch_id
-  if (sender_real_name) dropoff.sender_real_name = sender_real_name
-  if (tracking_number) dropoff.tracking_number = tracking_number
-  if (slug) dropoff.slug = slug
+  if (branch_id) dropoff.branch_id = branch_id=="null"?'':branch_id
+  if (sender_real_name) dropoff.sender_real_name = sender_real_name=="null"?'':sender_real_name
+  if (tracking_number) dropoff.tracking_number = tracking_number=="null"?'':tracking_number
+  if (slug) dropoff.slug = slug=="null"?'':slug
 
   let non_integrated={}
-  if (non_integrated_pkgn) non_integrated.non_integrated_pkgn = non_integrated_pkgn
+  if (non_integrated_pkgn) non_integrated.non_integrated_pkgn = non_integrated_pkgn=="null"?'':non_integrated_pkgn
 
   //required
-  if(pickup!=={})body.pickup=pickup
-  if(dropoff!=={})body.dropoff=dropoff
-  if(non_integrated!=={})body.non_integrated=non_integrated
+  if(address_id||pickup_time_id||tracking_number)body.pickup=pickup
+  if(branch_id||sender_real_name||tracking_number||slug)body.dropoff=dropoff
+  if(non_integrated_pkgn)body.non_integrated=non_integrated
 
   return hitApi(
     'post', //method
@@ -473,7 +480,7 @@ function getModuleList(item_id_list,envStore) {
 //https://open.shopee.com/documents/v2/v2.logistics.get_shipping_parameter?module=95&type=1
 function getShipParameter(shop_id,order_sn,envStore) {
   //path
-  let path = "/api/v2/product/get_model_list"
+  let path = "/api/v2/logistics/get_shipping_parameter"
   let param = {};
   //required
   if (shop_id) param.shop_id = shop_id
@@ -485,6 +492,7 @@ function getShipParameter(shop_id,order_sn,envStore) {
     param,//query
     null
     ,envStore
+    ,envStore,envStore && envStore.token ?envStore.token :null
   );
 }
 
@@ -823,7 +831,7 @@ function updateProduct(shop_id, item_id , description,weight,item_name,item_stat
 }
 
 
-function cancelOrder(shop_id,order_sn,cancel_reason,item_id,model_id,envStore) {
+function cancelOrder(envStore,shop_id,order_sn,cancel_reason,item_id,model_id) {
   let item_list=[
     item_id=item_id,
     model_id=model_id
@@ -854,14 +862,14 @@ function buyerCancel(shop_id,order_sn,operation,envStore) {
   responseData.marketplace = "shopee"
   responseData.timestamp = new Date().getTime();
   //path
-  let path = "/api/v2/order/cancel_order";
+  let path = "/api/v2/order/handle_buyer_cancellation";
   let param = {};
   param.shop_id = shop_id;
   let body = {}
   if(order_sn)body.order_sn=order_sn
 
   if(operation){
-    if(operation!=="ACCEPT"||operation!=="REJECT"){
+    if(operation!=="ACCEPT"&&operation!=="REJECT"){
       responseData.code=400;
       responseData.message="Field operation is only  ACCEPT or REJECT"
     }else{
@@ -880,7 +888,7 @@ function buyerCancel(shop_id,order_sn,operation,envStore) {
 function getShopInfo(shop_id,envStore) {
 
   //path
-  let path = "/api/v1/shop/get";
+  let path = "/api/v2/shop/get_shop_info";
   let param = {};
   if(shop_id)param.shop_id = shop_id;
   return hitApi(

@@ -2921,15 +2921,36 @@ router.post('/request-pickup', async function (req, res) {
                             res.status(hitAPI.code).send(hitAPI);
                             return;
                         } else {
-                            if (response.info_needed.pickup) {
-                                address_id = response.pickup.address_list[0].address_id
-                                pickup_time_id = response.pickup.address_list[0].time_slot_list[0].pickup_time_id
-                            } else if (response.info_needed.dropoff) {
-                                branch_id = response.dropoff.branch_list[0].branch_id
-                                if (response.info_needed.dropoff.includes("sender_real_name")) sender_real_name = response.info_needed.dropoff.sender_real_name;
-                                if (response.info_needed.dropoff.includes("tracking_no")) sender_real_name = response.info_needed.dropoff.tracking_no;
+
+                            if (hitAPI.data.info_needed.pickup) {
+                                if(hitAPI.data.info_needed.pickup.includes("address_id"))address_id = hitAPI.data.pickup.address_list||hitAPI.data.pickup.address_list!==null?hitAPI.data.pickup.address_list[0].address_id:'null';
+                                if(hitAPI.data.info_needed.pickup.includes("pickup_time_id"))pickup_time_id = hitAPI.data.pickup.address_list||hitAPI.data.pickup.address_list!==null? hitAPI.data.pickup.address_list[0].time_slot_list[0]?hitAPI.data.pickup.address_list[0].time_slot_list[0].pickup_time_id:'null':'null';
+
+                            } else if (hitAPI.data.info_needed.dropoff) {
+                                if(hitAPI.data.dropoff)branch_id = hitAPI.data.dropoff.branch_list||hitAPI.data.dropoff.branch_list!=null?hitAPI.data.dropoff.branch_list[0].branch_id:'null';
+
+                                if (hitAPI.data.info_needed.dropoff.includes("sender_real_name")) {
+                                    if(element.sender_name){
+                                        sender_real_name = element.sender_name;
+                                    }else{
+                                        response.code = 400
+                                        response.message = "Field sender_name on order list object is required if delivery_type is dropoff"
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }
+                                }
+                                if (hitAPI.data.info_needed.dropoff.includes("tracking_no")) {
+                                    if(element.tracking_no){
+                                        tracking_number = element.tracking_no;
+                                    }else{
+                                        response.code = 400
+                                        response.message = "Field tracking_no on order list object is required if delivery_type is dropoff"
+                                        res.status(response.code).send(response);
+                                        return;
+                                    }
+                                }
                             } else {
-                                if (response.info_needed.non_integrated[0] == "tracking_no") {
+                                if (hitAPI.data.info_needed.non_integrated.includes("tracking_no")) {
                                     if (element.no_awb == null || element.no_awb == undefined) {
                                         response.code = 400
                                         response.message = "Field no_awb on order list object is required"
@@ -2947,8 +2968,8 @@ router.post('/request-pickup', async function (req, res) {
 
                             if (notError) {
                                 hitAPI = await apiShoppe.shipOrder(shop_id, element.order_id, package_number, address_id, pickup_time_id, tracking_number, branch_id, sender_real_name, tracking_number, slug, non_integrated_pkgn, req.envStore)
-                                if (hitAPI.data.error == "") {
-                                    res.status(response.code).send(response);
+                                if (hitAPI.code !== 200) {
+                                    res.status(hitAPI.code).send(hitAPI);
                                     return;
                                 } else {
                                     res.status(hitAPI.code).send(hitAPI);
