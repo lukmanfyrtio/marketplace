@@ -324,8 +324,8 @@ function getAllSettlements(envStore,storeCode,   startDate, endDate, page = 0, s
 
     let body = {
         "filter": {
-            "periodEndDate": startDate,
-            "periodStartDate": endDate,
+            "periodEndDate": endDate,
+            "periodStartDate": startDate,
         },
         "paging": {
             "page": page,

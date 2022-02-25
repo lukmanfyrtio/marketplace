@@ -36,7 +36,7 @@ router.get('/chats', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.getChat(req.envStore,req.envStore,shop_id, page, limit)
+            let hitAPI = await apiTokped.getChat(req.envStore,shop_id, page, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {

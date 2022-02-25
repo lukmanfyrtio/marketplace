@@ -900,7 +900,7 @@ function getShopInfo(shop_id,envStore) {
   );
 }
 
-function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name,envStore) {
+function updateShopInfoV1(shop_id,shop_description,enable_display_unitno,disable_make_offer,videos,images,shop_name,envStore) {
 
   //path
   let path = "/api/v1/shop/update";
@@ -922,6 +922,26 @@ function updateShopInfo(shop_id,shop_description,enable_display_unitno,disable_m
   );
 }
 
+function updateShopInfoV2(shop_id,shop_description,shop_name,shop_logo,envStore) {
+
+  //path
+  let path = "/api/v2/shop/update_profile";
+  let param = {};
+  let body = {};
+  if(shop_id)param.shop_id = shop_id;
+
+  if(shop_description)body.description = shop_description;
+  if(shop_logo)body.shop_logo = shop_logo;
+  if(shop_name)body.shop_name = shop_name;
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body,
+    envStore
+  );
+}
 
 
-module.exports = {deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,updateShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+
+module.exports = {updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

@@ -7,6 +7,7 @@ const express = require('express')
 const router = express.Router();
 
 let response = {
+    timestamp: new Date().getTime(),
     code: 404,
     message: "Something Wrong"
 }
@@ -94,6 +95,7 @@ router.get('/settlement', async function (req, res) {
         if (marketplace == "tokopedia") {
             response.code = 400
             response.message = "This service is not yet available for tokopedia marketplace"
+            res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
             let hitAPI = await apiShoppe.getSingleSettlement(shop_id,orderid,req.envStore);
@@ -105,7 +107,7 @@ router.get('/settlement', async function (req, res) {
             return;
         } else if (marketplace == "lazada") {
             response.code = 400
-            response.message = "still not avalable for lazada"
+            response.message = "This service is not yet available for lazada marketplace"
             response.marketplace = "lazada"
             res.status(response.code).send(response);
             return;

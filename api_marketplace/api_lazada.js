@@ -102,7 +102,7 @@ async function hitApi(envStore, method = "", path = "", query = {}, body = {}, h
                 responseData.message = response.data.message;
             }
             responseData.codeStatus = response.data.code;
-            responseData.data = response.data.data == null ? response.data.result : response.data.data;
+            responseData.data = response.data.data == null ? response.data.result!=null?response.data.result:response.data : response.data.data;
             resolve(responseData);
 
         }).catch((e) => {

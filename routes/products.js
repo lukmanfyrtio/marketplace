@@ -2644,7 +2644,7 @@ router.get('/brands', async function (req, res) {
         response.message = "Parameter marketplace is required"
     } else if (marketplace !== "blibli" && marketplace !== "lazada" && marketplace !== "shopee") {
         response.code = 400
-        response.message = "Parameter marketplace only available for blibli or lazada"
+        response.message = "Parameter marketplace only available for shopee, blibli or lazada"
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
@@ -3494,15 +3494,15 @@ router.get('/shop_info', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
+            response.marketplace = "blibli"
             response.code = 400
             response.message = "still not avalable for blibli"
-            response.marketplace = "blibli"
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "lazada") {
+            response.marketplace = "lazada"
             response.code = 400
             response.message = "still not avalable for lazada"
-            response.marketplace = "lazada"
             res.status(response.code).send(response);
             return;
         }
@@ -3519,12 +3519,9 @@ router.post('/shop_info/update', async function (req, res) {
     const marketplace = search.marketplace;
 
 
-    const display_pickup_address = body.display_pickup_address;
     const shop_name = body.shop_name;
-    const offer = body.offer;
     const shop_description = body.shop_description;
-    const videos = body.videos;
-    const images = body.images;
+    const shop_logo = body.shop_logo;
     const start_date = body.start_date;
     const end_date = body.end_date;
     const action = body.action;
@@ -3601,52 +3598,7 @@ router.post('/shop_info/update', async function (req, res) {
                 }
             }
         } else if (marketplace == "shopee") {
-
-            if (offer) {
-                if (offer !== true || offer !== false) {
-                    response.code = 400
-                    response.message = "Parameter offer is only available true or false"
-                    res.status(response.code).send(response);
-                    return;
-                }
-            }
-            if (display_pickup_address) {
-                if (display_pickup_address !== true || display_pickup_address !== false) {
-                    response.code = 400
-                    response.message = "Parameter display_pickup_address is only available true or false"
-                    res.status(response.code).send(response);
-                    return;
-                }
-            }
-
-            let arrayImage = [];
-            if (images) {
-                images.forEach(element => {
-                    if (element.url === null && element.url === undefined) {
-                        response.code = 400;
-                        response.message = "url is required in images field";
-                        res.status(response.code).send(response);
-                        return;
-                    } else {
-                        arrayImage.push(element.url);
-                    }
-                });
-            }
-
-            let arrayVideo = [];
-            if (videos) {
-                videos.forEach(element => {
-                    if (element.url === null && element.url === undefined) {
-                        response.code = 400;
-                        response.message = "url is required in images field";
-                        res.status(response.code).send(response);
-                        return;
-                    } else {
-                        arrayVideo.push(element.url);
-                    }
-                });
-            }
-            let hitAPI = await apiShoppe.updateShopInfo(shop_id, shop_description, display_pickup_address, offer ? 0 : 1, arrayVideo, arrayImage, shop_name, req.envStore)
+            let hitAPI = await apiShoppe.updateShopInfoV2(shop_id,shop_description,shop_name,shop_logo,req.envStore);
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
