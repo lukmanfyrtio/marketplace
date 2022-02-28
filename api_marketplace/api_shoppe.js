@@ -219,8 +219,8 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
       }
     }).catch((e) => {
       console.log("generate token by refresh token shopee ->>>");
-      console.log(e.config.data);
-      console.log(e.response.data);
+      console.log(e.config.data?e.config.data:e);
+      console.log(e.response.data?e.response.data:e);
       resolve(`${envStore && envStore.token ? envStore.token : token}`);
     });
   });

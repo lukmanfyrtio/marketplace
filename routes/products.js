@@ -501,6 +501,7 @@ router.post('/product/create', async function (req, res) {
             let logistic_info = logistics
             let wholesales;
             let preorder_shopee;
+            let attribute_list=[];
 
             let array_images = [];
             images.forEach(element => {
@@ -3445,7 +3446,7 @@ router.post('/product/discussion/reply', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.postProductDiscussion(shop_id, comment_id, message, req.envStore)
+            let hitAPI = await apiShoppe.postProductDiscussion(shop_id, chatid, message, req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
@@ -3759,118 +3760,118 @@ router.get('/token/generate_by_refresh', async function (req, res) {
 });
 
 
-router.get('/queue_list', async function (req, res) {
-    const search = req.query
-    const shop_id = search.shop_id
-    let marketplace = search.marketplace
-    const queue_date = search.queue_date
-    const status = search.status
-    const queueAction = search.queueAction
-    const page = search.page
-    const limit = search.limit
+// router.get('/queue_list', async function (req, res) {
+//     const search = req.query
+//     const shop_id = search.shop_id
+//     let marketplace = search.marketplace
+//     const queue_date = search.queue_date
+//     const status = search.status
+//     const queueAction = search.queueAction
+//     const page = search.page
+//     const limit = search.limit
 
-    if (shop_id === null || shop_id === undefined) {
-        response.code = 400
-        response.message = "Parameter shop_id is required"
-        res.status(response.code).send(response);
-        return;
-    }else if (marketplace !== "blibli") {
-        response.code = 400
-        response.message = "Parameter marketplace only available for blibli"
-        res.status(response.code).send(response);
-        return;
-    }else if (!req.envStore.marketplace) {
-        response.code = 400
-        response.message = "shop_id not found"
-        res.status(response.code).send(response);
-        return;
-    } else if (queue_date === null || queue_date === undefined) {
-        response.code = 400
-        response.message = "Parameter queue_date is required"
-        res.status(response.code).send(response);
-        return;
-    } else {
-        marketplace = req.envStore.marketplace
-        if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getQueuelist(req.envStore, shop_id, queue_date,page,limit,queueAction,status)
-            res.status(hitAPI.code).send(hitAPI)
-            return;
-        }
-    }
-    return;
-})
+//     if (shop_id === null || shop_id === undefined) {
+//         response.code = 400
+//         response.message = "Parameter shop_id is required"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (marketplace !== "blibli") {
+//         response.code = 400
+//         response.message = "Parameter marketplace only available for blibli"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (!req.envStore.marketplace) {
+//         response.code = 400
+//         response.message = "shop_id not found"
+//         res.status(response.code).send(response);
+//         return;
+//     } else if (queue_date === null || queue_date === undefined) {
+//         response.code = 400
+//         response.message = "Parameter queue_date is required"
+//         res.status(response.code).send(response);
+//         return;
+//     } else {
+//         marketplace = req.envStore.marketplace
+//         if (marketplace == "blibli") {
+//             let hitAPI = await apiBlibli.getQueuelist(req.envStore, shop_id, queue_date,page,limit,queueAction,status)
+//             res.status(hitAPI.code).send(hitAPI)
+//             return;
+//         }
+//     }
+//     return;
+// })
 
-router.get('/queue_detail', async function (req, res) {
-    const search = req.query
-    const shop_id = search.shop_id
-    let marketplace = search.marketplace
-    const queue_id = search.queue_id
+// router.get('/queue_detail', async function (req, res) {
+//     const search = req.query
+//     const shop_id = search.shop_id
+//     let marketplace = search.marketplace
+//     const queue_id = search.queue_id
 
 
-    if (shop_id === null || shop_id === undefined) {
-        response.code = 400
-        response.message = "Parameter shop_id is required"
-        res.status(response.code).send(response);
-        return;
-    }else if (marketplace !== "blibli") {
-        response.code = 400
-        response.message = "Parameter marketplace only available for blibli"
-        res.status(response.code).send(response);
-        return;
-    }else if (!req.envStore.marketplace) {
-        response.code = 400
-        response.message = "shop_id not found"
-        res.status(response.code).send(response);
-        return;
-    } else if (queue_id === null || queue_id === undefined) {
-        response.code = 400
-        response.message = "Parameter queue_id is required"
-        res.status(response.code).send(response);
-        return;
-    } else {
-        marketplace = req.envStore.marketplace
-        if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getQueueDetail(req.envStore,shop_id,queue_id)
-            res.status(hitAPI.code).send(hitAPI)
-            return;
-        }
-    }
-    return;
-})
+//     if (shop_id === null || shop_id === undefined) {
+//         response.code = 400
+//         response.message = "Parameter shop_id is required"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (marketplace !== "blibli") {
+//         response.code = 400
+//         response.message = "Parameter marketplace only available for blibli"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (!req.envStore.marketplace) {
+//         response.code = 400
+//         response.message = "shop_id not found"
+//         res.status(response.code).send(response);
+//         return;
+//     } else if (queue_id === null || queue_id === undefined) {
+//         response.code = 400
+//         response.message = "Parameter queue_id is required"
+//         res.status(response.code).send(response);
+//         return;
+//     } else {
+//         marketplace = req.envStore.marketplace
+//         if (marketplace == "blibli") {
+//             let hitAPI = await apiBlibli.getQueueDetail(req.envStore,shop_id,queue_id)
+//             res.status(hitAPI.code).send(hitAPI)
+//             return;
+//         }
+//     }
+//     return;
+// })
 
-router.get('/sumbission_list', async function (req, res) {
-    const search = req.query
-    const shop_id = search.shop_id
-    let marketplace = search.marketplace
-    const page = search.page
-    const limit = search.limit
+// router.get('/sumbission_list', async function (req, res) {
+//     const search = req.query
+//     const shop_id = search.shop_id
+//     let marketplace = search.marketplace
+//     const page = search.page
+//     const limit = search.limit
 
-    const sellerSku = search.sellerSku
-    const state = search.state
-    if (shop_id === null || shop_id === undefined) {
-        response.code = 400
-        response.message = "Parameter shop_id is required"
-        res.status(response.code).send(response);
-        return;
-    }else if (marketplace !== "blibli") {
-        response.code = 400
-        response.message = "Parameter marketplace only available for blibli"
-        res.status(response.code).send(response);
-        return;
-    }else if (!req.envStore.marketplace) {
-        response.code = 400
-        response.message = "shop_id not found"
-        res.status(response.code).send(response);
-        return;
-    } else {
-        marketplace = req.envStore.marketplace
-        if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getSubmissionlist(req.envStore,shop_id,page,limit,limit,sellerSku,state)
-            res.status(hitAPI.code).send(hitAPI)
-            return;
-        }
-    }
-    return;
-})
+//     const sellerSku = search.sellerSku
+//     const state = search.state
+//     if (shop_id === null || shop_id === undefined) {
+//         response.code = 400
+//         response.message = "Parameter shop_id is required"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (marketplace !== "blibli") {
+//         response.code = 400
+//         response.message = "Parameter marketplace only available for blibli"
+//         res.status(response.code).send(response);
+//         return;
+//     }else if (!req.envStore.marketplace) {
+//         response.code = 400
+//         response.message = "shop_id not found"
+//         res.status(response.code).send(response);
+//         return;
+//     } else {
+//         marketplace = req.envStore.marketplace
+//         if (marketplace == "blibli") {
+//             let hitAPI = await apiBlibli.getSubmissionlist(req.envStore,shop_id,page,limit,limit,sellerSku,state)
+//             res.status(hitAPI.code).send(hitAPI)
+//             return;
+//         }
+//     }
+//     return;
+// })
 
 module.exports = router;

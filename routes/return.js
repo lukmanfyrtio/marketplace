@@ -171,7 +171,7 @@ router.post('/return/accept', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter action only available for agreeRefund or agreeReturn"
             } else {
-                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,"agreeReturn", return_id, '[]', 0, reason, images)
+                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,"agreeReturn", return_id, order_items?`${order_items}`:'[]', 0, reason, images)
                 res.send(hitAPI);
                 return;
             }
@@ -196,17 +196,23 @@ router.post('/return/reject', async function (req, res) {
     const reason = body.reason;
     const images = body.images;
     const email = body.email;//shoppe only
-    const order_item = body.order_item;//lazada only
+    const order_items = body.order_items;//lazada only
 
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
+        res.status(response.code).send(response);
+        return;
     } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
         response.code = 400
         response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+        res.status(response.code).send(response);
+        return;
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
+        res.status(response.code).send(response);
+                return;
     } else {
         if (marketplace == "tokopedia") {
             response.code = 400
@@ -270,11 +276,15 @@ router.post('/return/reject', async function (req, res) {
             if (action === null || action === undefined) {
                 response.code = 400
                 response.message = "Parameter action is required on lazada"
+                res.status(response.code).send(response);
+                return;
             } else if (action !== "refuseRefund" && action !== "refuseReturn") {
                 response.code = 400
                 response.message = "Parameter action only available for refuseRefund or refuseReturn"
+                res.status(response.code).send(response);
+                return;
             } else {
-                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,action, return_id, '[]', 0, reason, images)
+                let hitAPI = await apiLazada.acceptRejectReturn(req.envStore,action, return_id, order_items?`${order_items}`:'[]', 0, reason, images)
                 res.send(hitAPI);
                 return;
             }

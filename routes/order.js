@@ -193,9 +193,11 @@ router.post('/process/order', async function (req, res) {
           res.status(response.code).send(response)
           return;
         }
-      } else if (action != "accept" && action != "reject") {
+      } else if (action !== "accept" && action !== "reject") {
         response.code = 400
         response.message = "Field action is only accept or reject for lazada marketplace"
+        res.status(response.code).send(response);
+        return;
       } else {
         for await (const element of orders) {
           if (element.order_id == null || element.order_id == undefined) {
@@ -323,12 +325,18 @@ router.post('/process/order', async function (req, res) {
           if (element.order_id == undefined || element.order_id == null) {
             response.code = 400
             response.message = "Field order_id is required "
+            res.status(response.code).send(response)
+            return;
           } else if (element.delivery_type == undefined || element.delivery_type == null) {
             response.code = 400
             response.message = "Field delivery_type is required ";
+            res.status(response.code).send(response)
+            return;
           } else if (element.shipping_provider == undefined || element.shipping_provider == null) {
             response.code = 400
             response.message = "Field shipping_provider is required "
+            res.status(response.code).send(response)
+            return;
           } else {
             hitAPI = await apiLazada.acceptOrder(req.envStore, `${element.order_id}`, element.shipping_provider, element.delivery_type);
             if (hitAPI.codeStatus != '0') {
@@ -346,6 +354,8 @@ router.post('/process/order', async function (req, res) {
       } else if (action != "accept" && action != "reject") {
         response.code = 400
         response.message = "Field action is only accept or reject for lazada marketplace"
+        res.status(response.code).send(response)
+        return;
       } else {
         for await (const element of orders) {
           if (element.order_id == undefined || element.order_id == null) {

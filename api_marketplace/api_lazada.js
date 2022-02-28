@@ -513,13 +513,13 @@ function getAllReturns(envStore, page_size, page_no) {
 
 
 function acceptRejectReturn(envStore, action, reverse_order_id, reverse_order_item_ids, reason_id, comment, image_info) {
-    let path = '/reverse/getreverseordersforseller';
+    let path = '/order/reverse/return/update';
     let param = getCommonParam(envStore);
 
     if (action) param.action = action;
     if (reverse_order_id) param.reverse_order_id = reverse_order_id;
     if (reverse_order_item_ids) param.reverse_order_item_ids = reverse_order_item_ids;
-    if (reason_id) param.reason_id = reason_id;
+    if (reason_id!==null && reason_id!==undefined) param.reason_id = reason_id;
     if (comment) param.comment = comment;
     if (image_info) param.image_info = image_info;
 
