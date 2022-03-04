@@ -116,7 +116,7 @@ function getSingleOrder(envStore,order_id, invoice_num) {
 function getOrders(envStore,from_date, to_date, page=1, per_page=50, shop_id, warehouse_id, status) {
   let params = {};
   //required
-  params.fs_id = fs_id
+  params.fs_id = `${envStore && envStore.code_1 ? envStore.code_1 : fs_id}`
   if (from_date) params.from_date = from_date
   if (to_date) params.to_date = to_date
   params.page = page
@@ -157,7 +157,7 @@ function orderReject(envStore,order_id, reason_code, reason, shop_close_end_date
 function orderAccept(envStore,order_id) {
   let params = {};
   if (order_id) params.order_id = order_id
-  params.fs_id = fs_id
+  params.fs_id = `${envStore && envStore.code_1 ? envStore.code_1 : fs_id}`
   return hitApi('post', `/v1/order/${order_id}/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/ack`,null,params,envStore);
 }
 

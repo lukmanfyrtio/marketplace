@@ -122,29 +122,30 @@ function getCode(envStore) {
   timest = Number(Math.round(new Date().getTime() / 1000))
   let path = '/api/v2/shop/auth_partner'
   let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest;
+  console.log(baseString);
   let result_sign = sign(baseString,envStore);
 
-  param.partner_id = partner_id;
+  param.partner_id =  `${envStore && envStore.clientid ? envStore.clientid : partner_id}`;
   param.timestamp = timest;
   param.sign = result_sign;
-  param.redirect = redirectUrl;
+  param.redirect = `${envStore && envStore.code_2 ? envStore.code_2 : redirectUrl}`;
 
-  return url+path+"?"+new URLSearchParams(param).toString();
+  return  `${envStore && envStore.api_url ? envStore.api_url : url}` +path+"?"+new URLSearchParams(param).toString();
 }
 
 async function getToken(shop_id, main_account_id,code,envStore) {
   let param = {};
   timest = new Date().getTime() / 1000;
   let path = '/api/v2/auth/token/get'
-  let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest;
+  let baseString = `${envStore && envStore.clientid ? envStore.clientid : partner_id}`+ path + timest;
   let result_sign = sign(baseString,envStore);
 
-  param.partner_id = partner_id;
+  param.partner_id = `${envStore && envStore.clientid ? envStore.clientid : partner_id}`;
   param.timestamp = timest;
   param.sign = result_sign;
   let body = {
     code: code,
-    partner_id: Number(partner_id),
+    partner_id: Number(`${envStore && envStore.clientid ? envStore.clientid : partner_id}`),
     shop_id: Number(shop_id),
   }
 
@@ -155,12 +156,13 @@ async function getToken(shop_id, main_account_id,code,envStore) {
   return new Promise(function (resolve, reject) {
     axios({
       method: 'post',
-      url: url + path,
+      url:  `${envStore && envStore.api_url ? envStore.api_url : url}`  + path,
       params: param,
       data: body
 
     }).then(async function (response) {
-      console.log(response);
+      console.log(response.config.data);
+      console.log(response.data);
       const rs = await eq(
         `update stores set updatedby='sys_mpapi_shopee_stores', updatedtime=CURRENT_TIMESTAMP, token='${response.data.access_token}' ,refresh='${response.data.refresh_token}' where shop_id='${shop_id}' and marketplace='${envStore.marketplace}'`
       )
@@ -180,15 +182,15 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
   let param = {};
   timest = new Date().getTime() / 1000;
   let path = '/api/v2/auth/access_token/get'
-  let baseString = partner_id + path + timest;
+  let baseString =  `${envStore && envStore.clientid ? envStore.clientid : partner_id}` + path + timest;
   let result_sign = sign(baseString,envStore);
 
-  param.partner_id = partner_id;
+  param.partner_id =  `${envStore && envStore.clientid ? envStore.clientid : partner_id}`;
   param.timestamp = timest;
   param.sign = result_sign;
   let body = {
     refresh_token: refresh_token,
-    partner_id: Number(partner_id),
+    partner_id: Number( `${envStore && envStore.clientid ? envStore.clientid : partner_id}`),
     shop_id: Number(shop_id),
   }
 
@@ -199,7 +201,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
   return new Promise(function (resolve, reject) {
     axios({
       method: 'post',
-      url: url + path,
+      url:  `${envStore && envStore.api_url ? envStore.api_url : url}` + path,
       params: param,
       data: body
 
