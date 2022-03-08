@@ -232,13 +232,23 @@ function getToken(envStore, code) {
 }
 
 
-function getSingleOrder(envStore, order_id) {
+async function getSingleOrder(envStore, order_id) {
     let path = '/order/get'
+    let param = getCommonParam(envStore);
+    if (order_id) param.order_id = order_id;
+    let response=await hitApi(envStore, "get", path, param, {}, {});
+    let order_items=await getOrderItems(envStore,order_id);
+    if(order_items.data!==null||order_items.data!==undefined)response.data['order_items']=order_items.data;
+    console.log(order_items);
+    return response;
+}
+
+function getOrderItems(envStore, order_id) {
+    let path = '/order/items/get'
     let param = getCommonParam(envStore);
     if (order_id) param.order_id = order_id;
     return hitApi(envStore, "get", path, param, {}, {})
 }
-
 
 
 function getOrders(envStore, offset = 0, limit = 50, created_before, created_after) {

@@ -237,7 +237,33 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStor
   let param = {};
   //requset parameter
   if (order_sn_list) param.order_sn_list = order_sn_list.toString();
-  if (response_optional_fields) param.response_optional_fields = response_optional_fields;
+  param.response_optional_fields = [
+    "actual_shipping_fee",
+    "actual_shipping_fee_confirmed",
+    "buyer_cancel_reason",
+    "buyer_cpf_id",
+    "buyer_user_id",
+    "buyer_username",
+    "cancel_by",
+    "cancel_reason",
+    "dropshipper",
+    "dropshipper_phone",
+    "estimated_shipping_fee",
+    "fulfillment_flag",
+    "goods_to_declare",
+    "invoice_data",
+    "item_list",
+    "note",
+    "note_update_time",
+    "package_list",
+    "pay_time",
+    "payment_method",
+    "pickup_done_time",
+    "recipient_address",
+    "shipping_carrier",
+    "split_up",
+    "total_amount"
+  ].toString();
   param.shop_id = Number(shop_id);
 
   return hitApi(

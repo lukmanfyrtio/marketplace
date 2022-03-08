@@ -66,7 +66,7 @@ router.get('/orders', async function (req, res) {
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
-      let hitAPI = await apiLazada.getOrders(req.envStore, page, limit, start_time, end_time)
+      let hitAPI = await apiLazada.getOrders(req.envStore, page, limit, end_time, start_time)
       res.status(hitAPI.code).send(hitAPI);
       return;
     }
