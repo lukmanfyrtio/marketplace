@@ -231,7 +231,7 @@ async function getRefreshToken(shop_id, main_account_id,refresh_token,envStore) 
 
 
 //https://open.shopee.com/documents?module=94&type=1&id=557&version=2
-function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStore) {
+async function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStore) {
   //path
   let path = "/api/v2/order/get_order_detail";
   let param = {};
@@ -266,13 +266,21 @@ function getSingleOrder(shop_id, order_sn_list, response_optional_fields,envStor
   ].toString();
   param.shop_id = Number(shop_id);
 
-  return hitApi(
+  let response= await hitApi(
     'get', //method
     path, //path
     param,//query
     null,
     envStore
   );
+
+  let order_list_new=[];
+  for await(const item of response.data.order_list){
+    let tracking_number=await getTrackingNumber(shop_id,item.order_sn,null,envStore,envStore && envStore.token ?envStore.token :'')
+    item["tracking_number_info"]=tracking_number.data;
+    order_list_new.push(item);
+  }
+  return response;
 }
 
 //https://open.shopee.com/documents?module=94&type=1&id=542&version=2
@@ -352,6 +360,31 @@ function getSingleProduct(shop_id, item_id_list, need_tax_info, need_complaint_p
   //optional
   if (need_tax_info) param.need_tax_info = need_tax_info
   if (need_complaint_policy) param.need_complaint_policy = need_complaint_policy
+  return hitApi(
+    'get', //method
+    path, //path
+    param,//query
+    null,
+    envStore,
+    acc_token
+  );
+}
+
+//get tracking number 
+//https://open.shopee.com/documents/v2/v2.logistics.get_tracking_number?module=95&type=1
+function getTrackingNumber(shop_id, order_sn, package_number,envStore,acc_token) {
+
+  //path
+  let path = "/api/v2/logistics/get_tracking_number"
+  let param = {};
+  param.shop_id = shop_id;
+
+  //required
+  if (order_sn) param.order_sn = `${order_sn}`
+
+  //optional
+  param.response_optional_fields = ["plp_number","first_mile_tracking_number","last_mile_tracking_number"].toString();
+  if (package_number) param.package_number = package_number
   return hitApi(
     'get', //method
     path, //path
@@ -970,6 +1003,29 @@ function updateShopInfoV2(shop_id,shop_description,shop_name,shop_logo,envStore)
   );
 }
 
+function getShippingDocument(shop_id, order_sn, envStore) {
+
+  //path
+  let path = "/api/v2/logistics/download_shipping_document";
+  let param = {};
+  let body = {};
+  if (shop_id) param.shop_id = shop_id;
+
+  body.shipping_document_type = 'NORMAL_AIR_WAYBILL';
+  if (order_sn) body.order_list = [
+    {
+      "order_sn": `${order_sn}`,
+    }
+  ];
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body,
+    envStore
+  );
+}
 
 
-module.exports = {updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+
+module.exports = {getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

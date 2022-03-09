@@ -43,7 +43,7 @@ function getToken(envStore) { // env
 
 
 // async function hitApi(method = "empty", path = "empty", query = "empty", body = null) {
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null, envStore) { // env
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null, envStore,returnHtml=false) { // env
   let responseData = {};
   responseData.marketplace = "tokopedia"
   responseData.timestamp = new Date().getTime();
@@ -73,12 +73,16 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       console.log("hit api tokopedia ->>")
       console.log(response.config);
       console.log(response.data);
+      if(!returnHtml){
       responseData.code = response.status;
       responseData.message = response.data.header.messages;
       responseData.data = response.data.data
       resolve(responseData);
+      }else{
+        resolve(response.data);
+      }
     }).catch((e) => {
-      console.log("hit api tokopedia ->>")
+      console.log("hit api tokopedia catch ->>")
       console.log(e.response.config);
       console.log(e.response.data);
       responseData.code = e.response.status;
@@ -605,7 +609,18 @@ function updateShopInfo(envStore,shop_id,action ,start_date,end_date,close_note,
   return hitApi('post', path, {}, params,envStore);
 }
 
+function getShippingLabel(envStore,shop_id,order_id) {
+  let params = {};
+  //required
+  if (shop_id) params.shop_id = Number(shop_id)
+  params.printed =1
+  let path = `/v1/order/${order_id}/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/shipping-label
+  `;
+
+  return hitApi('get', path, params, {},envStore,true);
+}
 
 
 
-module.exports = {getProductDiscussion,getResolutionTicket,updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct,updateShopInfo};
+
+module.exports = {getShippingLabel,getProductDiscussion,getResolutionTicket,updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct,updateShopInfo};

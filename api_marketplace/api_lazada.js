@@ -76,7 +76,7 @@ function getCommonParam(envStore) {
 }
 
 
-async function hitApi(envStore, method = "", path = "", query = {}, body = {}, headers = {}) {
+async function hitApi(envStore, method = "", path = "", query = {}, body = {}, headers = {},encode=false) {
     let responseData = {};
     responseData.marketplace = "lazada"
     responseData.timestamp = new Date().getTime();
@@ -103,7 +103,13 @@ async function hitApi(envStore, method = "", path = "", query = {}, body = {}, h
             }
             responseData.codeStatus = response.data.code;
             responseData.data = response.data.data == null ? response.data.result!=null?response.data.result:response.data : response.data.data;
+            let buff = new Buffer(responseData.data.document.file, 'base64');
+            let text = buff.toString('UTF-8');  
+            if(encode){
+                resolve(text)
+            }else{
             resolve(responseData);
+            }
 
         }).catch((e) => {
             console.log("hit api lazada ->>")
@@ -239,7 +245,6 @@ async function getSingleOrder(envStore, order_id) {
     let response=await hitApi(envStore, "get", path, param, {}, {});
     let order_items=await getOrderItems(envStore,order_id);
     if(order_items.data!==null||order_items.data!==undefined)response.data['order_items']=order_items.data;
-    console.log(order_items);
     return response;
 }
 
@@ -248,6 +253,13 @@ function getOrderItems(envStore, order_id) {
     let param = getCommonParam(envStore);
     if (order_id) param.order_id = order_id;
     return hitApi(envStore, "get", path, param, {}, {})
+}
+
+function getDocumentAWB(envStore, order_item_ids) {
+    let path = '/order/document/awb/html/get'
+    let param = getCommonParam(envStore);
+    if (order_item_ids) param.order_item_ids = order_item_ids;
+    return hitApi(envStore, "get", path, param, {}, {},true)
 }
 
 
@@ -563,4 +575,4 @@ function sellerPostReview(envStore, id, content) {
 
     return hitApi(envStore, "get", path, param, {}, {})
 }
-module.exports = { getAuthLink, getToken, getRefreshToken, removeProduct, orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct, sellerPostReview };
+module.exports = { getDocumentAWB,getAuthLink, getToken, getRefreshToken, removeProduct, orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct, sellerPostReview };

@@ -2720,6 +2720,47 @@ router.get('/logistic', async function (req, res) {
     res.status(response.code).send(response)
 });
 
+//get logistic getawb
+router.get('/logistic/getawb', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+    const orderid = search.orderid;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "shopee"&&marketplace !== "blibli"&&marketplace !== "lazada"&&marketplace !== "tokopedia") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for shopee, blibli,lazada or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (orderid === null || orderid === undefined) {
+        response.code = 400
+        response.message = "Parameter orderid is required "
+    } else {
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.getShippingLabel(req.envStore,shop_id,orderid);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getShippingDocument(shop_id,orderid, req.envStore);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            let hitAPI = await apiBlibli.getDownloadAirwayBill(req.envStore,shop_id,orderid);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.getDocumentAWB(req.envStore,`[${orderid}]`);
+            res.send(hitAPI);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
 
 //creation status
 router.get('/product/creation-status', async function (req, res) {

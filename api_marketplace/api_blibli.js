@@ -612,7 +612,15 @@ function getSubmissionlist(envStore,storeCode,page=0,size=50,sellerSku,state) {
     return hitApi(method = "post", path, param,body,null,envStore)
 }
 
+function getDownloadAirwayBill(envStore,businessPartnerCode,orderItemNo) {
+    let path = `/proxy/mta/api/businesspartner/v1/order/downloadAirwayBill`;
+    let param = {};
+    if (businessPartnerCode) param.businessPartnerCode = businessPartnerCode
+    if (orderItemNo) param.orderItemNo = orderItemNo
+    return hitApi(method = "get", path, param,null,envStore)
+}
 
-module.exports = {getLogistics,getQueueDetail,getSubmissionlist,getQueuelist, partialPickup, bopisPickup, regularPickup, bigProductPickup, getAttribute, getCreationStatus, getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion, getCategory, getReply, postReply, getAllSettlements, getSingleSettlement, updateProduct, createProductV3, acceptOrder, updateState, getAllReturns, getSingleReturn };
+
+module.exports = {getDownloadAirwayBill,getLogistics,getQueueDetail,getSubmissionlist,getQueuelist, partialPickup, bopisPickup, regularPickup, bigProductPickup, getAttribute, getCreationStatus, getPickupPoint, getSingleOrder, getOrders, getProducts, getSingleProduct, getBrands, updateProductPrice, updateProductStock, getProductDiscussion, getCategory, getReply, postReply, getAllSettlements, getSingleSettlement, updateProduct, createProductV3, acceptOrder, updateState, getAllReturns, getSingleReturn };
 
 
