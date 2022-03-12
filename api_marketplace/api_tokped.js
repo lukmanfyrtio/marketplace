@@ -1,11 +1,62 @@
 
 const axios = require('axios')
+const FormData = require('form-data');
+var fs = require('fs')
+const crypto =require('crypto')
+
+function jsonS(d) { return JSON.stringify(d) }
+function jsonP(d) { return d ? JSON.parse(d) : {} }
+function jsonPs(d) { return jsonP(jsonS(d)) }
+
 let client_id = '7db04fe68ef243d492f45d9754dc4efd';
 let client_secret = '4f4f08c861284c55acdeda6f33327d15';
 let url = 'https://fs.tokopedia.net';
 let fs_id = 15991
+let pkey =`-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAw+n7hH+3XMjI9PhGF8wCWN9OEVRrX7B6ITV+HYrvX7pyb/l0
+iTyetOHM4pNgdXv8jNSlQJDrq8jNynYZN0Cs6FsRuCHBNuiI7IoMxKFQdqZm6TmF
+YEiMszJ2h/2/Hf2bcK9e21Qrvdyrl6YX1ldvcTntU9OiiivmAYp7QtnLULQicpxO
+VXc5Y2AeIPwvtpJJRSHo/CJf3bCP5mNz/Ih1aIjlFpJVbfeUyAc6iJHtP0Rxw2/N
+9fZY/Fgh6F584q4rbNuQ2u18yOulWrZpTc3+La1ASFW3+uuBGDIXHKaDAVBvm1VD
+ST9Hrrdi+rTvEC4rO6E2A40Nf9Pe4OReWFxUBQIDAQABAoIBAF/xk7J01XiEAB4w
+BCudRjz9xv6nqBnplDX1O3j+VHI+HdMGiHK5FEQjHLKNWDzQ5oKVlQREtJWhNl8D
+bR/o9YSpLMlPBo98W6nzhYM6OOySW222NMJNZVJQ0UmSE+l9DIWn7L1ewDkv+3y9
+44idsz7xDm/yAfTGwNJaXjkD7hTr9lyrAnAJv2pSwY1+HNifOGjjoJ8faEcHxRGV
+tVnNhxKfyleThpvAYUK1eXjPo5E9v7SPd9Ei8HsdL1Lvk+JGe4pntOBY6LAOmNgI
+jyJuZSt5zdUC5PPJrRIxM1HK3ZPDrtPvvbXJD7Sb7wMfpCXolblC0fQtPtPyPjWw
+mqTXbSECgYEA9sD46QDvoywhz44zD6p50zb2j7uNC9Je+zfFjSIkD6DzLe5Z4o/g
+wNiSWrKsf2kvdWs3Ya1RvdiBaNpUPLp3pk/h7OzExXfdo4rVFZYqnav22y0UJTWD
+L3zrT/coqwrWy7rWBwlMtzyKT7WRdizI65E4ecdbmJgQ2Osytg8eG50CgYEAy0FS
+G7ltuVO1ojgU47l12QAvwWatkK0801txBwqcKTjhrqS5VB/k1xXXOI/U0b+kXlTM
+E96RXsRNEm/AMSGAgHbBMI91OYOtmybZy8jzV7/tkJAchgsfnaFBrU2gf224FQAJ
+8Ds0E+wc6xOyNNBfxZryWVpLUuaWtqz3pZxIsYkCgYEA0+8gmvf72zlPfPaUsrLo
+WdpOYVtkJLA2di0L11Foiafi1iNvPmH3V4tsAMyPzgspAP/qnFGB8L4hQE6tpU8+
+7zCTSqx9wWFXk1zt8dF9ntkReGS6dc8FcucnMRKG8omnvWom4/o/0u4DmbzISCjl
+FTcwu5/X8zNA3R79+lL3uB0CgYEAmKZiSDgnU/yueTqtVao/+83MD/BRgkrZV9Nh
+O+yYA82YkVVdavTZJUBd9zjumOjZRY9iBboua4H6cFJFgaCrpc+KoDHd1Gg0xkWT
+ZR1yxQB8JwpUocdQ403syX93frykeAEjdazBHAVEYrjUKh4lD3+ja8AIuiY8Is4c
+3+BUKCECgYAmSH9UTKtPFcqgOJCxWE5y8AoeAY2CIo7jt3dRxZoLjCDvfH1H8iWh
+iHqzBrx6WZSemRljuGkdet8R30BbL/OwsNO3AeDwMUqs8QNLN0yVJODkK8rwsoDL
+rqoi+Fc07ELVYDpoehML8TxmAF/LX0P3sr73pL9SmuaY5jfrkp/pew==
+-----END RSA PRIVATE KEY-----`
 
 
+
+function decryptContent(ciphertext, passphrase) {
+  var input = new Buffer(ciphertext, 'base64')
+  var nonce = input.slice(input.length - 12, input.length)
+  ciphertext = input.slice(0, input.length - 12)
+  var taglength = 16
+  var tag = ciphertext.slice(ciphertext.length - taglength, ciphertext.length)
+  var acipher = ciphertext.slice(0, ciphertext.length - taglength)
+  var key = passphrase
+
+  var cipher = crypto.createDecipheriv('aes-256-gcm', key, nonce)
+  cipher.setAuthTag(tag)
+  var plaintext = Buffer.concat([cipher.update(acipher), cipher.final()])
+
+  return plaintext ? jsonP(plaintext.toString('utf-8')) : {}
+}
 
 function encodeToBase64(envStore) {
   var s = Buffer.from(`${envStore && envStore.clientid ? envStore.clientid : client_id}:${envStore && envStore.clientkey ? envStore.clientkey : client_secret}`).toString('base64')
@@ -43,7 +94,7 @@ function getToken(envStore) { // env
 
 
 // async function hitApi(method = "empty", path = "empty", query = "empty", body = null) {
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null, envStore,returnHtml=false) { // env
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null, envStore,returnHtml=false,formData) { // env
   let responseData = {};
   responseData.marketplace = "tokopedia"
   responseData.timestamp = new Date().getTime();
@@ -60,7 +111,12 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
     url: (envStore && envStore.api_url ? envStore.api_url : url) + path, // env
     params: query,
     headers: headers,
+  }
 
+  if(formData){
+    headers['Content-Type']=`multipart/form-data;`
+    headers={...formData.getHeaders()}
+    config.data=formData;
   }
 
   if(body&&Object.keys(body).length !== 0){
@@ -77,11 +133,47 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       responseData.code = response.status;
       responseData.message = response.data.header.messages;
       responseData.data = response.data.data
-      resolve(responseData);
+      if(Array.isArray(responseData.data)){
+        responseData.data.forEach(function (item, i) {
+          if (item.encryption) {
+            try {
+            const dSecret = crypto.privateDecrypt({
+            key: pkey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256'
+            }, Buffer.from(item.encryption.secret, 'base64')).toString()
+            
+            const dContent = decryptContent(item.encryption.content, dSecret)
+            responseData.data[i].decryption=dContent
+            }catch(err) {
+              console.log(err);
+            }
+          }
+        });
       }else{
-        resolve(response.data);
+        if(responseData.data.encryption){
+          let item=responseData.data
+          try {
+            const dSecret = crypto.privateDecrypt({
+            key: pkey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256'
+            }, Buffer.from(item.encryption.secret, 'base64')).toString()
+            
+            const dContent = decryptContent(item.encryption.content, dSecret)
+            responseData.data.decryption=dContent
+            }catch(err) {
+              console.log(err);
+            }
+        }
+      }
+        resolve(responseData);
+      }else{
+        let base64=Buffer.from(response.data).toString('base64');
+        responseData.message='Your request has been processed successfully'
+        responseData.data = {
+          encodedBase64: base64
+        };
+        resolve(responseData);
       }
     }).catch((e) => {
+      console.log(e);
       console.log("hit api tokopedia catch ->>")
       console.log(e.response.config);
       console.log(e.response.data);
@@ -609,6 +701,15 @@ function updateShopInfo(envStore,shop_id,action ,start_date,end_date,close_note,
   return hitApi('post', path, {}, params,envStore);
 }
 
+function uploadPublicKey(envStore,shop_id,public_key ) {
+
+  const data = new FormData();
+  data.append('public_key',fs.createReadStream("/Users/lukmanfyrtio/Downloads/public_key.txt"))
+  let path = `/v1/fs/${envStore && envStore.code_1 ? envStore.code_1 : fs_id}/register?upload=1`;
+
+  return hitApi('post', path, null, null,envStore,false,data);
+}
+
 function getShippingLabel(envStore,shop_id,order_id) {
   let params = {};
   //required
@@ -623,4 +724,4 @@ function getShippingLabel(envStore,shop_id,order_id) {
 
 
 
-module.exports = {getShippingLabel,getProductDiscussion,getResolutionTicket,updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct,updateShopInfo};
+module.exports = {uploadPublicKey,getShippingLabel,getProductDiscussion,getResolutionTicket,updateState,getAllSettlements, getSingleOrder, getOrders, orderAccept, orderReject, requestPickup, updateOrderStatus, getToken, getCategories, getProduct, updateProductPrice, updateProductStock, getProductVariant, getShopInfo, getAllEtalase, getAllShowCase, createProductV3, updateProductState,getStatusProduct ,getChat,getReply,postReply,updateProductV3,deleteProduct,updateShopInfo};

@@ -478,6 +478,28 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
   );
 }
 
+function createShippingDocument(shop_id, order_sn ,envStore) {
+  //path
+  let path = "/api/v2/logistics/create_shipping_document"
+  let param = {};
+  param.shop_id = shop_id;
+  //required
+  let body = {
+    "order_list": [
+        {
+            "order_sn": `${order_sn}`,
+        }
+    ]
+}
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body//body,
+    ,envStore
+  );
+}
+
 function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
   //path
   let path = "/api/v2/logistics/ship_order"
@@ -1028,4 +1050,4 @@ function getShippingDocument(shop_id, order_sn, envStore) {
 
 
 
-module.exports = {getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {createShippingDocument,getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

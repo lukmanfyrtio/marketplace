@@ -2,6 +2,7 @@ const apiShoppe = require('../api_marketplace/api_shoppe.js')
 const apiTokped = require('../api_marketplace/api_tokped.js')
 const apiBlibli = require('../api_marketplace/api_blibli.js')
 const apiLazada = require('../api_marketplace/api_lazada.js')
+const multer = require("multer");
 const moment = require('moment')
 
 const db = require('mariadb')
@@ -2762,6 +2763,53 @@ router.get('/logistic/getawb', async function (req, res) {
 });
 
 
+//get logistic getawb
+router.post('/logistic/create_ship_doc', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const marketplace = search.marketplace;
+    const orderid = search.orderid;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "shopee") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for shopee"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (orderid === null || orderid === undefined) {
+        response.code = 400
+        response.message = "Parameter orderid is required "
+    } else {
+        if (marketplace == "tokopedia") {
+            response.code = 400
+            response.message = "still not avalable for tokopedia"
+            response.marketplace = "tokopedia"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.createShippingDocument(shop_id,orderid, req.envStore);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            response.code = 400
+            response.message = "still not avalable for lazada"
+            response.marketplace = "lazada"
+            res.status(response.code).send(response);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
 //creation status
 router.get('/product/creation-status', async function (req, res) {
     const search = req.query;
@@ -3763,6 +3811,33 @@ router.get('/token/generate_by_code', async function (req, res) {
     }
 });
 
+
+// router.post('/upload/public-key', multer().single('public_key'), async function (req, res, next) {
+
+//     const search = req.query
+//     const shop_id = search.shop_id
+//     let marketplace = search.marketplace
+//     console.log(req.file, req.body)
+//     if (marketplace === null || marketplace === undefined || marketplace === '') {
+//         response.code = 400
+//         response.message = "Parameter marketplace is required"
+//         res.status(response.code).send(response);
+//         return;
+//     } else if (marketplace !== "tokopedia") {
+//         response.code = 400
+//         response.message = "Parameter marketplace only available for tokopedia "
+//         res.status(response.code).send(response);
+//         return;
+//     } else if (shop_id === null || shop_id === undefined) {
+//         response.code = 400
+//         response.message = "Parameter shop_id is required"
+//         res.send(response);
+//     }else{
+//         let hitAPI = await apiTokped.uploadPublicKey(req.envStore,shop_id,req.file)
+//         res.send(hitAPI);
+//         return
+//     }
+// });
 
 router.get('/token/generate_by_refresh', async function (req, res) {
     const search = req.query
