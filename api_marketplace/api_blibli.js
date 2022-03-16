@@ -144,7 +144,7 @@ function getSingleOrder(envStore,orderNo, orderItemNo) {
     return hitApi(method = "get", path, param, {},envStore)
 }
 
-function getOrders(envStore,shop_id,   startDate, endDate, page = 0, limit = 50) {
+function getOrders(envStore,shop_id,   startDate, endDate, page = 0, limit = 50,order_status) {
     let path = "/proxy/seller/v1/orders/packages/filter";
     let param = {};
     if (shop_id) param.storeCode = shop_id
@@ -166,6 +166,11 @@ function getOrders(envStore,shop_id,   startDate, endDate, page = 0, limit = 50)
             "size": limit
         }
     }
+    if(order_status){
+        body['filter'].orderItemStatuses=[`${order_status}`]
+    }
+
+
     return hitApi(method = "post", path, param, body,envStore)
 }
 

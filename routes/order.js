@@ -27,7 +27,7 @@ router.get('/orders', async function (req, res) {
   const start_time = search.start_time;
   const end_time = search.end_time;
 
-
+  const order_status = search.order_status;
   const page = search.page;
   const limit = search.limit;
 
@@ -54,19 +54,19 @@ router.get('/orders', async function (req, res) {
     response.message = "Parameter end_time format is YYYY-MM-DD"
   } else {
     if (marketplace == "tokopedia") {
-      let hitAPI = await apiTokped.getOrders(req.envStore, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit, shop_id)
+      let hitAPI = await apiTokped.getOrders(req.envStore, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit, shop_id,null,order_status)
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "shopee") {
-      let hitAPI = await apiShoppe.getOrders(shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit, null, null, req.envStore)
+      let hitAPI = await apiShoppe.getOrders(shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit, order_status, null, req.envStore)
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "blibli") {
-      let hitAPI = await apiBlibli.getOrders(req.envStore, shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit);
+      let hitAPI = await apiBlibli.getOrders(req.envStore, shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit,order_status);
       res.status(hitAPI.code).send(hitAPI);
       return;
     } else if (marketplace == "lazada") {
-      let hitAPI = await apiLazada.getOrders(req.envStore, page, limit, end_time, start_time)
+      let hitAPI = await apiLazada.getOrders(req.envStore, page, limit, end_time, start_time,order_status)
       res.status(hitAPI.code).send(hitAPI);
       return;
     }

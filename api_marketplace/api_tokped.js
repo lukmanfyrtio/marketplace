@@ -149,7 +149,7 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
           }
         });
       }else{
-        if(responseData.data.encryption){
+        if(responseData && responseData.data &&responseData.data.encryption){
           let item=responseData.data
           try {
             const dSecret = crypto.privateDecrypt({
