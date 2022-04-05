@@ -21,7 +21,9 @@ async function eq(q) {
     return rw
   }
 }
-
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 async function getEnvStores() {
   const rs = await eq(
     `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
@@ -45,7 +47,7 @@ let timest;
 let redirectUrl = "http://wms.gosyenretail.co.id/";
 
 
-async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore,acc_token) {
+async function hitApi(method = "empty", path = "empty", query = "empty", body = null,envStore,acc_token,pdf) {
   let timest;
   timest = Math.round(new Date().getTime() / 1000)
   //set param common
@@ -63,14 +65,18 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
   responseData.marketplace = "shopee"
   responseData.timestamp = new Date().getTime();
   responseData.message = 'Your request has been processed successfully';
-  return new Promise(function (resolve, reject) {
-    axios({
-      method: method,
-      url:  `${envStore && envStore.api_url ? envStore.api_url : url}` + path,
-      params: query,
-      data: body
+  let config = {
+    method: method,
+    url:  `${envStore && envStore.api_url ? envStore.api_url : url}` + path,
+    params: query,
+    data: body,
+  }
 
-    }).then(function (response) {
+  if(pdf){
+    config.responseType= 'arraybuffer'
+  }
+  return new Promise(function (resolve, reject) {
+    axios(config).then(function (response) {
       console.log("hit api shopee ->>")
       console.log(response.config);
       console.log(response.data);
@@ -92,16 +98,19 @@ async function hitApi(method = "empty", path = "empty", query = "empty", body = 
       if(response.data.error!==''){
         responseData.code =400;
       }
+      if(pdf){
+        let base64=Buffer.from(response.data).toString("base64")
+        responseData.code =200;
+        responseData.data = {
+          encodedBase64: base64
+        };
+      }
       resolve(responseData);
 
     }).catch((e) => {
-      console.log("hit api shopee catch->>")
-      console.log(e.response.config);
-      console.log(e.response.data);
-      responseData.code = e.response.status;
-      if (e.response.status == 403) {
-        responseData.message = e.response.data.message
-      }
+      console.log("hit api shopee catch->>"+e)
+      responseData.code = 400;
+      responseData.message = e.response.data.message
       resolve(responseData);
     });
   });
@@ -275,17 +284,21 @@ async function getSingleOrder(shop_id, order_sn_list, response_optional_fields,e
   );
 
   let order_list_new=[];
+  if(response.code==200){
   for await(const item of response.data.order_list){
+    await sleep(1000)
     let tracking_number=await getTrackingNumber(shop_id,item.order_sn,null,envStore,envStore && envStore.token ?envStore.token :'')
     item["tracking_number_info"]=tracking_number.data;
     order_list_new.push(item);
   }
+  } 
   return response;
 }
 
 //https://open.shopee.com/documents?module=94&type=1&id=542&version=2
-function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
+async function getOrders(shop_id, start_date, end_date, page_size = 50, cursor
   , order_status, response_optional_fields,envStore) {
+  await sleep(1000)
   //path
   let path = "/api/v2/order/get_order_list"
   let param = {};
@@ -395,6 +408,59 @@ function getTrackingNumber(shop_id, order_sn, package_number,envStore,acc_token)
   );
 }
 
+//get shipping document info 
+//https://open.shopee.com/documents/v2/v2.logistics.get_shipping_document_info?module=95&type=1
+function getShippingDocumentInfo(shop_id, order_sn, package_number,envStore,acc_token) {
+
+  //path
+  let path = "/api/v2/logistics/get_shipping_document_info"
+  let param = {};
+  param.shop_id = shop_id;
+
+  //required
+  if (order_sn) param.order_sn = `${order_sn}`
+  if (package_number) param.package_number = package_number
+
+
+  return hitApi(
+    'get', //method
+    path, //path
+    param,//query
+    null,
+    envStore,
+    acc_token
+  );
+}
+
+//get shipping document result 
+//https://open.shopee.com/documents/v2/v2.logistics.get_shipping_document_result?module=95&type=1
+function getShippingDocumentResult(shop_id, order_sn, package_number,shipping_document_type,envStore,acc_token) {
+
+  //path
+  let path = "/api/v2/logistics/get_shipping_document_result"
+  let param = {};
+  param.shop_id = shop_id;
+
+
+  //required
+  let order_list = {}
+  if (order_sn) order_list.order_sn = `${order_sn}`
+  if (package_number) order_list.package_number = package_number
+  if (shipping_document_type) order_list.shipping_document_type = shipping_document_type
+
+  let body = {
+    order_list: [order_list]
+  }
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body,
+    envStore,
+    acc_token
+  );
+}
+
 
 //update product price
 //https://open.shopee.com/documents?module=89&type=1&id=651&version=2
@@ -478,7 +544,7 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
   );
 }
 
-function createShippingDocument(shop_id, order_sn ,envStore) {
+function createShippingDocument(shop_id, order_sn ,package_number,tracking_number,shipping_document_type,envStore) {
   //path
   let path = "/api/v2/logistics/create_shipping_document"
   let param = {};
@@ -488,6 +554,9 @@ function createShippingDocument(shop_id, order_sn ,envStore) {
     "order_list": [
         {
             "order_sn": `${order_sn}`,
+            "package_number":package_number,
+            "tracking_number":tracking_number,
+            "shipping_document_type":shipping_document_type
         }
     ]
 }
@@ -500,7 +569,8 @@ function createShippingDocument(shop_id, order_sn ,envStore) {
   );
 }
 
-function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
+async function shipOrder(shop_id, order_sn, package_number,address_id,pickup_time_id,tracking_number,branch_id,sender_real_name,tracking_number,slug,non_integrated_pkgn,envStore) {
+  await sleep(1000);
   //path
   let path = "/api/v2/logistics/ship_order"
   let param = {};
@@ -561,21 +631,21 @@ function getModuleList(item_id_list,envStore) {
 
 // get ship parameter
 //https://open.shopee.com/documents/v2/v2.logistics.get_shipping_parameter?module=95&type=1
-function getShipParameter(shop_id,order_sn,envStore) {
+async function getShipParameter(shop_id,order_sn,envStore) {
+  await sleep(1000);
   //path
   let path = "/api/v2/logistics/get_shipping_parameter"
   let param = {};
   //required
   if (shop_id) param.shop_id = shop_id
   if (order_sn) param.order_sn = order_sn
-
   return hitApi(
     'get', //method
     path, //path
     param,//query
     null
     ,envStore
-    ,envStore,envStore && envStore.token ?envStore.token :null
+    ,envStore && envStore.token ?envStore.token :null
   );
 }
 
@@ -1045,9 +1115,11 @@ function getShippingDocument(shop_id, order_sn, envStore) {
     param,//query
     body,
     envStore
+    ,null
+    ,true
   );
 }
 
 
 
-module.exports = {createShippingDocument,getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {getTrackingNumber,getShippingDocumentResult,getShippingDocumentInfo,createShippingDocument,getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};

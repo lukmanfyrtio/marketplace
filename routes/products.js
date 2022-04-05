@@ -25,7 +25,9 @@ async function eq(q) {
         return rw
     }
 }
-
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 async function getEnvStores() {
     const rs = await eq(
         `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
@@ -2727,7 +2729,9 @@ router.get('/logistic/getawb', async function (req, res) {
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
     const orderid = search.orderid;
-
+    const package_number = search.package_number;
+    const shipping_document_type = search.shipping_document_type;
+    const tracking_number = search.tracking_number;
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
         response.message = "Parameter marketplace is required"
@@ -2746,9 +2750,34 @@ router.get('/logistic/getawb', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getShippingDocument(shop_id,orderid, req.envStore);
+            let hitAPI;
+            let trackingNum;
+            hitAPI=await apiShoppe.getTrackingNumber(shop_id,orderid,package_number,req.envStore,req.envStore && req.envStore.token ?req.envStore.token :'')
+            if(hitAPI.code == 200&&hitAPI.data.tracking_number!==""&&hitAPI.data.tracking_number!==null){
+            trackingNum=hitAPI.data.tracking_number;
+            hitAPI = await apiShoppe.getShippingDocumentResult(shop_id, orderid, package_number, shipping_document_type?shipping_document_type:"NORMAL_AIR_WAYBILL", req.envStore, req.envStore && req.envStore.token ? req.envStore.token : null);
+            await sleep(1000)
+            console.log(hitAPI);
+            if (hitAPI.code == 200 && hitAPI.data.result_list[0].status==="READY") {
+                await sleep(1000)
+                hitAPI = await apiShoppe.getShippingDocument(shop_id, orderid, req.envStore);
+                res.send(hitAPI);
+                return;
+            } else {
+                if(hitAPI.data.error=="logistics.shipping_document_should_print_first"){
+                    hitAPI = await apiShoppe.createShippingDocument(shop_id,orderid,package_number,tracking_number?tracking_number:trackingNum,shipping_document_type?shipping_document_type:"NORMAL_AIR_WAYBILL",req.envStore)
+                    res.send(hitAPI);
+                    return;
+                }else{
+                    res.send(hitAPI);
+                    return;
+                }
+            }
+        }else{
+            hitAPI.message='Shipping document can only be created after TrackingNo is generated'
             res.send(hitAPI);
             return;
+        }
         } else if (marketplace == "blibli") {
             let hitAPI = await apiBlibli.getDownloadAirwayBill(req.envStore,shop_id,orderid);
             res.send(hitAPI);

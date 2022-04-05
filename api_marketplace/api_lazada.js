@@ -22,6 +22,10 @@ async function eq(q) {
     }
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function getEnvStores() {
     const rs = await eq(
         `select nama_toko, marketplace, shop_id, api_url, clientid, clientkey, token, refresh, code_1, code_2, code_3, code_4, code_5, tipe from stores where status = "1"`
@@ -103,20 +107,18 @@ async function hitApi(envStore, method = "", path = "", query = {}, body = {}, h
             }
             responseData.codeStatus = response.data.code;
             responseData.data = response.data.data == null ? response.data.result!=null?response.data.result:response.data : response.data.data;
-            let buff = new Buffer(responseData.data.document.file, 'base64');
-            let text = buff.toString('UTF-8');  
             if(encode){
+                let buff = new Buffer(responseData.data.document.file, 'base64');
+                let text = buff.toString('UTF-8');  
                 resolve(text)
             }else{
             resolve(responseData);
             }
 
         }).catch((e) => {
-            console.log("hit api lazada ->>")
-            console.log(e.response.config);
-            console.log(e.response.data);
-            responseData.code = e.response.status;
-            responseData.message = response.data.message;
+            console.log("catch hit api lazada ->>")
+            responseData.code = e&&e.response&&e.response.status?e.response.status:400;
+            responseData.message = e&&e.response&&e.response.data&&e.response.data.message?e.response.data.message:e;
             resolve(responseData);
         });
     });
@@ -239,16 +241,20 @@ function getToken(envStore, code) {
 
 
 async function getSingleOrder(envStore, order_id) {
+    await sleep(1000);
     let path = '/order/get'
     let param = getCommonParam(envStore);
     if (order_id) param.order_id = order_id;
     let response=await hitApi(envStore, "get", path, param, {}, {});
+    
+    
     let order_items=await getOrderItems(envStore,order_id);
     if(order_items.data!==null||order_items.data!==undefined)response.data['order_items']=order_items.data;
     return response;
 }
 
-function getOrderItems(envStore, order_id) {
+async function getOrderItems(envStore, order_id) {
+    await sleep(1000);
     let path = '/order/items/get'
     let param = getCommonParam(envStore);
     if (order_id) param.order_id = order_id;
@@ -263,7 +269,7 @@ function getDocumentAWB(envStore, order_item_ids) {
 }
 
 
-function getOrders(envStore, offset = 0, limit = 50, created_before, created_after) {
+function getOrders(envStore, offset = 0, limit = 50, created_before, created_after,order_status) {
     let path = '/orders/get'
     let param = getCommonParam(envStore);
     param.sort_direction = 'DESC';
@@ -272,6 +278,7 @@ function getOrders(envStore, offset = 0, limit = 50, created_before, created_aft
     param.sort_by = 'created_at';
     if (created_before) param.created_before = created_before + "T00:00:00+07:00";
     if (created_after) param.created_after = created_after + "T00:23:59+07:00";;
+    if (order_status)param.status=order_status
 
     return hitApi(envStore, "get", path, param, {}, {})
 }

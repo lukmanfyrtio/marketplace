@@ -317,6 +317,7 @@ router.post('/process/order', async function (req, res) {
       }
     } else if (marketplace == "lazada") {
       let hitAPI = { code: 400 };
+      let array_data=[];
       if (action == "accept") {
         var orderIds = []
         let delivery_type;
@@ -338,16 +339,19 @@ router.post('/process/order', async function (req, res) {
             res.status(response.code).send(response)
             return;
           } else {
-            hitAPI = await apiLazada.acceptOrder(req.envStore, `${element.order_id}`, element.shipping_provider, element.delivery_type);
+            hitAPI = await apiLazada.acceptOrder(req.envStore, `[${element.order_id}]`, element.shipping_provider, element.delivery_type);
             if (hitAPI.codeStatus != '0') {
               res.status(hitAPI.code).send(hitAPI);
               return;
             } else {
               hitAPI.code === 200
+              response.code=200
+              array_data.push(hitAPI.data)
             }
           }
         };
         if (hitAPI.code === 200) {
+          response.data=array_data;
           res.status(response.code).send(response)
         }
         return;
