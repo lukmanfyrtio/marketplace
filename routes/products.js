@@ -2193,15 +2193,15 @@ router.get('/products', async function (req, res) {
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllProducts(shop_id, page, limit, null, null, (req.envStore ? req.envStore : ''));
+            let hitAPI = await apiShoppe.getAllProducts(shop_id,  Number(limit*(page-1)), limit, null, null, (req.envStore ? req.envStore : ''));
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getProducts(req.envStore, shop_id, true, null, false, limit, page, null, true, null, null, null);
+            let hitAPI = await apiBlibli.getProducts(req.envStore, shop_id, true, null, false, limit, page===0?0:page-1, null, true, null, null, null);
             res.status(hitAPI.code).send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getProducts(req.envStore, page, limit);
+            let hitAPI = await apiLazada.getProducts(req.envStore, page===0?0:page-1, limit);
             res.status(hitAPI.code).send(hitAPI);
             return;
         }
@@ -2548,6 +2548,7 @@ router.get('/product/variant', async function (req, res) {
     const shop_id = search.shop_id;
     const marketplace = search.marketplace;
     const category_id = search.category_id;
+    const productId = search.productId;
 
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
@@ -2558,20 +2559,25 @@ router.get('/product/variant', async function (req, res) {
     } else if (shop_id === null || shop_id === undefined) {
         response.code = 400
         response.message = "Parameter shop_id is required "
-    } else if (category_id === null || category_id === undefined) {
-        response.code = 400
-        response.message = "Parameter category_id is required "
     } else {
         if (marketplace == "tokopedia") {
+            if (category_id === null || category_id === undefined) {
+                response.code = 400
+                response.message = "Parameter category_id is required "
+            }else{
             let hitAPI = await apiTokped.getProductVariant(req.envStore, "cat_id", null, category_id);
             res.send(hitAPI);
             return;
+            }
         } else if (marketplace == "shopee") {
-            response.code = 400
-            response.message = "still not avalable for shoppe"
-            response.marketplace = "shopee"
-            res.status(response.code).send(response);
+            if (productId === null || productId === undefined) {
+                response.code = 400
+                response.message = "Parameter productId is required on shopee"
+            }else{
+            let hitAPI = await apiShoppe.getVariant(shop_id,productId,req.envStore)
+            res.send(hitAPI);
             return;
+            }
         } else if (marketplace == "blibli") {
             response.code = 400
             response.message = "still not avalable for blibli"
@@ -2664,16 +2670,16 @@ router.get('/brands', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter category_id is required on shopee"
             } else {
-                let hitAPI = await apiShoppe.getBrands(shop_id, category_id, 'id', page, limit, req.envStore)
+                let hitAPI = await apiShoppe.getBrands(shop_id, category_id, 'id', limit,  Number(limit*(page-1)), req.envStore)
                 res.send(hitAPI);
                 return;
             }
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getBrands(req.envStore, shop_id, keyword, page, limit);
+            let hitAPI = await apiBlibli.getBrands(req.envStore, shop_id, keyword, page===0?0:page-1, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getBrands(req.envStore, page, limit)
+            let hitAPI = await apiLazada.getBrands(req.envStore, page===0?0:page-1, limit)
             res.send(hitAPI);
             return;
         }
@@ -3457,12 +3463,12 @@ router.get('/product/discussion/list', async function (req, res) {
                 response.code = 400
                 response.message = "Parameter productId is required "
             }else{
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, productId, null, page, limit, req.envStore)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, productId, null, limit,  Number(limit*(page-1)), req.envStore)
             res.send(hitAPI);
             return;
             }
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getProductDiscussion(req.envStore, shop_id,  unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit)
+            let hitAPI = await apiBlibli.getProductDiscussion(req.envStore, shop_id,  unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page===0?0:page-1, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -3507,11 +3513,11 @@ router.get('/product/discussion', async function (req, res) {
             res.status(response.code).send(response);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, null, comment_id, page, limit, req.envStore)
+            let hitAPI = await apiShoppe.getProductDiscussion(shop_id, null, comment_id, limit,  Number(limit*(page-1)), req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getReply(req.envStore, comment_id, shop_id, page, limit);
+            let hitAPI = await apiBlibli.getReply(req.envStore, comment_id, shop_id, page===0?0:page-1, limit);
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
@@ -3841,6 +3847,39 @@ router.get('/token/generate_by_code', async function (req, res) {
 });
 
 
+router.get('/token/get_refresh_by_upgradecode', async function (req, res) {
+    const search = req.query
+    const shop_id = search.shop_id
+    const upgrade_code = search.upgrade_code
+    let marketplace = search.marketplace
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+        res.status(response.code).send(response);
+        return;
+    } else if (marketplace !== "shopee") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for shopee"
+        res.status(response.code).send(response);
+        return;
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required"
+        res.send(response);
+    } else if (upgrade_code === null || upgrade_code === undefined) {
+        response.code = 400
+        response.message = "Parameter upgrade_code is required"
+        res.send(response);
+    } else {
+        if (marketplace == "shopee") {
+            let hitAPI = await apiShoppe.getRefreshTokenByUpgradeCode(shop_id,upgrade_code, req.envStore)
+            res.send(hitAPI);
+            return
+        } 
+    }
+});
+
+
 // router.post('/upload/public-key', multer().single('public_key'), async function (req, res, next) {
 
 //     const search = req.query
@@ -3893,7 +3932,7 @@ router.get('/token/generate_by_refresh', async function (req, res) {
         res.send(response);
     } else {
         if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getRefreshToken(shop_id, null, refresh_token, req.envStore);
+            let hitAPI = await apiShoppe.getRefreshTokenAPI(shop_id, null, refresh_token, req.envStore);
             res.send(hitAPI);
             return
         }else if (marketplace == "lazada") {

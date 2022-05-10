@@ -55,15 +55,15 @@ router.get('/settlements', async function (req, res) {
             res.send(hitAPI);
             return;
         } else if (marketplace == "shopee") {
-            let hitAPI = await apiShoppe.getAllSettlement(shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"),page,limit,req.envStore)
+            let hitAPI = await apiShoppe.getAllSettlement(shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"),limit,page,req.envStore)
             res.send(hitAPI);
             return;
         } else if (marketplace == "blibli") {
-            let hitAPI = await apiBlibli.getAllSettlements(req.envStore,shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page, limit)
+            let hitAPI = await apiBlibli.getAllSettlements(req.envStore,shop_id, unixTms(start_time+" 00:00:00"), unixTms(end_time+" 23:59:59"), page===0?0:page-1, limit)
             res.send(hitAPI);
             return;
         } else if (marketplace == "lazada") {
-            let hitAPI = await apiLazada.getAllSettlements(req.envStore,page, limit, start_time, end_time);
+            let hitAPI = await apiLazada.getAllSettlements(req.envStore,Number(limit?limit*(page-1):0), limit, start_time, end_time);
             res.send(hitAPI);
             return;
         }

@@ -107,13 +107,13 @@ async function hitApi(envStore, method = "", path = "", query = {}, body = {}, h
             }
             responseData.codeStatus = response.data.code;
             responseData.data = response.data.data == null ? response.data.result!=null?response.data.result:response.data : response.data.data;
-            if(encode){
-                let buff = new Buffer(responseData.data.document.file, 'base64');
-                let text = buff.toString('UTF-8');  
-                resolve(text)
-            }else{
+            // if(encode){
+            //     let buff = new Buffer(responseData.data.document.file, 'base64');
+            //     let text = buff.toString('UTF-8');  
+            //     resolve(text)
+            // }else{
             resolve(responseData);
-            }
+            // }
 
         }).catch((e) => {
             console.log("catch hit api lazada ->>")
