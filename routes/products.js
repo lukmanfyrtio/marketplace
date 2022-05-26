@@ -2774,6 +2774,10 @@ router.get('/logistic/getawb', async function (req, res) {
                     hitAPI = await apiShoppe.createShippingDocument(shop_id,orderid,package_number,tracking_number?tracking_number:trackingNum,shipping_document_type?shipping_document_type:"NORMAL_AIR_WAYBILL",req.envStore)
                     res.send(hitAPI);
                     return;
+                }else if(hitAPI.data.result_list[0].status==="FAILED"){
+                    hitAPI = await apiShoppe.createShippingDocument(shop_id,orderid,package_number,tracking_number?tracking_number:trackingNum,shipping_document_type?shipping_document_type:"NORMAL_AIR_WAYBILL",req.envStore)
+                    res.send(hitAPI);
+                    return;
                 }else{
                     res.send(hitAPI);
                     return;
