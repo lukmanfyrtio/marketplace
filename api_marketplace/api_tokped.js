@@ -355,18 +355,16 @@ function getProductVariant(envStore,getBy, product_id, cat_id) {
 }
 
 
-function updateProductPrice(envStore,shop_id, new_price, product_id) {
+function updateProductPrice(envStore,shop_id, new_price, product_id,sku) {
   let params = {};
   let bodyObj = {};
   //required
-  if (product_id) bodyObj.product_id = product_id
-  if (new_price) bodyObj.new_price = new_price
+  if (product_id) bodyObj.product_id = Number(product_id)
+  if (new_price) bodyObj.new_price = Number(new_price)
+  if (sku) bodyObj.sku = sku
 
   let body = [
-    {
-      "product_id": Number(product_id),
-      "new_price": Number(new_price)
-    }
+    bodyObj
   ];
 
   if (shop_id) params.shop_id = shop_id
@@ -410,13 +408,15 @@ function deleteProduct(envStore,shop_id, product_id) {
   return hitApi('post', path, params, JSON.parse(body),envStore);
 }
 
-function updateProductStock(envStore,shop_id, new_stock, product_id) {
+function updateProductStock(envStore,shop_id, new_stock, product_id,warehouse_id,sku) {
   let body = [];
   let params = {};
   let bodyObj={};
   //required
   if (product_id) bodyObj.product_id = Number(product_id)
   if (new_stock) bodyObj.new_stock = Number(new_stock)
+  if (warehouse_id) bodyObj.warehouse_id = Number(warehouse_id)
+  if (sku) bodyObj.sku = sku
   if (Object.keys(bodyObj).length !== 0) {
     body.push(bodyObj)
   }

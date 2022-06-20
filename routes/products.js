@@ -2274,7 +2274,7 @@ router.post('/product/update_price', async function (req, res) {
     } else if (new_price === null || new_price === undefined) {
         response.code = 400
         response.message = "Parameter new_price is required "
-    } else if (product_id === null || product_id === undefined) {
+    } else if (marketplace !== "tokopedia"&&(product_id === null || product_id === undefined)) {
         response.code = 400
         response.message = "Parameter product_id is required"
     } else if (marketplace == "lazada" && (sku_id === null || sku_id === undefined)) {
@@ -2282,9 +2282,20 @@ router.post('/product/update_price', async function (req, res) {
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.updateProductPrice(req.envStore, shop_id, new_price, product_id);
-            res.send(hitAPI);
-            return;
+            if (product_id === null || product_id === undefined) {
+                if(sku_id === null || sku_id === undefined){
+                response.code = 400
+                response.message = "Parameter sku_id is required if product_id not inputted"
+                }else{
+                let hitAPI = await apiTokped.updateProductPrice(req.envStore, shop_id, new_price, product_id,sku_id);
+                res.send(hitAPI);
+                return;
+                }
+            }else{
+                let hitAPI = await apiTokped.updateProductPrice(req.envStore, shop_id, new_price, product_id,sku_id);
+                res.send(hitAPI);
+                return;
+            }
         } else if (marketplace == "shopee") {
             let hitAPI = await apiShoppe.updatePrice(shop_id, Number(product_id), new_price, req.envStore);
             res.send(hitAPI);
@@ -2310,6 +2321,7 @@ router.post('/product/update_stock', async function (req, res) {
     const product_id = search.product_id;
     const marketplace = search.marketplace;
     const sku_id = search.sku_id;
+    const warehouse_id = search.warehouse_id;
 
     if (marketplace === null || marketplace === undefined) {
         response.code = 400
@@ -2323,27 +2335,161 @@ router.post('/product/update_stock', async function (req, res) {
     } else if (new_stock === null || new_stock === undefined) {
         response.code = 400
         response.message = "Parameter new_stock is required "
-    } else if (product_id === null || product_id === undefined) {
-        response.code = 400
-        response.message = "Parameter product_id is required"
     } else if (marketplace == "lazada" && (sku_id === null || sku_id === undefined)) {
         response.code = 400
         response.message = "Parameter sku_id is required on lazada marketplace"
     } else {
         if (marketplace == "tokopedia") {
-            let hitAPI = await apiTokped.updateProductStock(req.envStore, shop_id, new_stock, product_id);
-            res.send(hitAPI);
-            return;
+            if (product_id === null || product_id === undefined) {
+                if(sku_id === null || sku_id === undefined){
+                response.code = 400
+                response.message = "Parameter sku_id is required if product_id not inputted"
+                }else{
+                let hitAPI = await apiTokped.updateProductStock(req.envStore, shop_id, new_stock, product_id,warehouse_id,sku_id);
+                res.send(hitAPI);
+                return;
+                }
+            }else{
+                let hitAPI = await apiTokped.updateProductStock(req.envStore, shop_id, new_stock, product_id,warehouse_id,sku_id);
+                res.send(hitAPI);
+                return;
+            }
+            
         } else if (marketplace == "shopee") {
+            if (product_id === null || product_id === undefined) {
+                response.code = 400
+                response.message = "Parameter product_id is required"
+            }else{
             let hitAPI = await apiShoppe.updateStock(shop_id, Number(product_id), new_stock, req.envStore);
             res.send(hitAPI);
             return;
+            }
         } else if (marketplace == "blibli") {
+            if (product_id === null || product_id === undefined) {
+                response.code = 400
+                response.message = "Parameter product_id is required"
+            }else{
             let hitAPI = await apiBlibli.updateProductStock(req.envStore, product_id, shop_id, new_stock);
             res.send(hitAPI);
             return;
+            }
         } else if (marketplace == "lazada") {
+            if (product_id === null || product_id === undefined) {
+                response.code = 400
+                response.message = "Parameter product_id is required"
+            }else{
             let hitAPI = await apiLazada.updateProductStock(req.envStore, product_id, new_stock, sku_id);
+            res.send(hitAPI);
+            return;
+            }
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+
+//updatePrice variant
+router.post('/product/variant/update_price', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const new_price = search.new_price;
+    const product_id = search.product_id;
+    const variant_id = search.variant_id;
+    const seller_sku = search.seller_sku;
+    const marketplace = search.marketplace;
+
+    if (marketplace === null || marketplace === undefined || marketplace === '') {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (new_price === null || new_price === undefined) {
+        response.code = 400
+        response.message = "Parameter new_price is required "
+    } else if ((variant_id === null || variant_id === undefined)) {
+        response.code = 400
+        response.message = "Parameter variant_id is required"
+    }  else {
+        if (marketplace == "tokopedia") {
+            let hitAPI = await apiTokped.updateProductPrice(req.envStore, shop_id, new_price, product_id,variant_id);
+            res.send(hitAPI);
+            return;
+        } else if (marketplace == "shopee") {
+            if(product_id === null || product_id === undefined){
+                response.code = 400
+                response.message = "Parameter product_id on shopee is required"
+            }else{
+                let hitAPI = await apiShoppe.updatePriceVariant(shop_id, Number(product_id), new_price, req.envStore,variant_id);
+                res.send(hitAPI);
+                return;
+            }
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.updateProductPrice(req.envStore, product_id, new_price, variant_id,seller_sku)
+            res.send(hitAPI);
+            return;
+        }
+    }
+    res.status(response.code).send(response)
+});
+
+//updateStock variant
+router.post('/product/variant/update_stock', async function (req, res) {
+    const search = req.query;
+    const shop_id = search.shop_id;
+    const new_stock = search.new_stock;
+    const product_id = search.product_id;
+    const variant_id = search.variant_id;
+    const seller_sku = search.seller_sku;
+    const warehouse_id = search.warehouse_id;
+    const marketplace = search.marketplace;
+
+    if (marketplace === null || marketplace === undefined) {
+        response.code = 400
+        response.message = "Parameter marketplace is required"
+    } else if (marketplace !== "lazada" && marketplace !== "shopee" && marketplace !== "" && marketplace !== "tokopedia" && marketplace !== "blibli") {
+        response.code = 400
+        response.message = "Parameter marketplace only available for blibli ,lazada, shopee, or tokopedia"
+    } else if (shop_id === null || shop_id === undefined) {
+        response.code = 400
+        response.message = "Parameter shop_id is required "
+    } else if (new_stock === null || new_stock === undefined) {
+        response.code = 400
+        response.message = "Parameter new_stock is required "
+    } else if ((variant_id === null || variant_id === undefined)) {
+        response.code = 400
+        response.message = "Parameter variant_id is required"
+    } else {
+        if (marketplace == "tokopedia") {
+                let hitAPI = await apiTokped.updateProductStock(req.envStore, shop_id, new_stock, product_id,warehouse_id,variant_id);
+                res.send(hitAPI);
+                return;
+        } else if (marketplace == "shopee") {
+            if (product_id === null || product_id === undefined) {
+                response.code = 400
+                response.message = "Parameter product_id on shopee is required";
+            }else{
+            let hitAPI = await apiShoppe.updateStockVariant(shop_id, Number(product_id), new_stock, req.envStore,variant_id);
+            res.send(hitAPI);
+            return;
+            }
+        } else if (marketplace == "blibli") {
+            response.code = 400
+            response.message = "still not avalable for blibli"
+            response.marketplace = "blibli"
+            res.status(response.code).send(response);
+            return;
+        } else if (marketplace == "lazada") {
+            let hitAPI = await apiLazada.updateProductStockVariant(req.envStore, product_id, new_stock, variant_id,seller_sku);
             res.send(hitAPI);
             return;
         }
@@ -2561,11 +2707,17 @@ router.get('/product/variant', async function (req, res) {
         response.message = "Parameter shop_id is required "
     } else {
         if (marketplace == "tokopedia") {
-            if (category_id === null || category_id === undefined) {
+            if (productId === null || productId === undefined) {
+                if(category_id === null || category_id === undefined){
                 response.code = 400
-                response.message = "Parameter category_id is required "
+                response.message = "Parameter category_id is required if productId not inputted"
+                }else{
+                    let hitAPI = await apiTokped.getProductVariant(req.envStore, productId?"product_id":"cat_id", productId, category_id);
+                    res.send(hitAPI);
+                    return;  
+                }
             }else{
-            let hitAPI = await apiTokped.getProductVariant(req.envStore, "cat_id", null, category_id);
+            let hitAPI = await apiTokped.getProductVariant(req.envStore, productId?"product_id":"cat_id", productId, category_id);
             res.send(hitAPI);
             return;
             }

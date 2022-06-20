@@ -276,8 +276,8 @@ function getOrders(envStore, offset = 0, limit = 50, created_before, created_aft
     param.offset = offset;
     if (limit) param.limit = limit;
     param.sort_by = 'created_at';
-    if (created_before) param.created_before = created_before + "T00:00:00+07:00";
-    if (created_after) param.created_after = created_after + "T00:23:59+07:00";;
+    if (created_after) param.created_after = created_after + "T00:00:00+07:00";
+    if (created_before) param.created_before = created_before + "T23:59:00+07:00";;
     if (order_status)param.status=order_status
 
     return hitApi(envStore, "get", path, param, {}, {})
@@ -319,6 +319,37 @@ function updateProductStock(envStore, product_id, stock, sku_id) {
                 <ItemId>${product_id}</ItemId>
                 <SkuId>${sku_id}</SkuId>
                 <SellerSku></SellerSku>
+                <Price></Price>
+                <SalePrice></SalePrice>
+                <SaleStartDate></SaleStartDate>
+                <SaleEndDate></SaleEndDate>
+                <Quantity>${stock}</Quantity>
+            </Sku>
+            </Skus>
+        </Product>
+        </Request>
+        `
+    param.payload = payload
+    let header = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    return hitApi(envStore, "post", path, param, {}, header)
+}
+
+
+function updateProductStockVariant(envStore, product_id, stock, sku_id,seller_sku) {
+    let path = '/product/price_quantity/update'
+    let param = getCommonParam(envStore);
+    if (product_id) param.item_id = product_id;
+
+    let payload = `
+        <Request>
+        <Product>
+            <Skus>
+            <Sku>
+                <ItemId>${product_id?product_id:""}</ItemId>
+                <SkuId>${sku_id?sku_id:""}</SkuId>
+                <SellerSku>${seller_sku?seller_sku:""}</SellerSku>
                 <Price></Price>
                 <SalePrice></SalePrice>
                 <SaleStartDate></SaleStartDate>
@@ -379,6 +410,68 @@ function updateProductPrice(envStore, product_id, price, sku_id) {
           <ItemId>${product_id}</ItemId>
           <SkuId>${sku_id}</SkuId>
           <SellerSku></SellerSku>
+          <Price>${price}</Price>
+          <SalePrice></SalePrice>
+          <SaleStartDate></SaleStartDate>
+          <SaleEndDate></SaleEndDate>
+          <Quantity></Quantity>
+        </Sku>
+      </Skus>
+    </Product>
+  </Request>
+            `
+    param.payload = payload
+    let header = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    return hitApi(envStore, "post", path, param, {}, header)
+}
+
+function updateProductPrice(envStore, product_id, price, sku_id) {
+    let path = '/product/price_quantity/update'
+    let param = getCommonParam(envStore);
+    // if (product_id) param.item_id = product_id;
+    // if (sku_id) param.sku_id = sku_id;
+
+    let payload = `
+    <Request>
+    <Product>
+      <Skus>
+        <Sku>
+          <ItemId>${product_id}</ItemId>
+          <SkuId>${sku_id}</SkuId>
+          <SellerSku></SellerSku>
+          <Price>${price}</Price>
+          <SalePrice></SalePrice>
+          <SaleStartDate></SaleStartDate>
+          <SaleEndDate></SaleEndDate>
+          <Quantity></Quantity>
+        </Sku>
+      </Skus>
+    </Product>
+  </Request>
+            `
+    param.payload = payload
+    let header = {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+    }
+    return hitApi(envStore, "post", path, param, {}, header)
+}
+
+function updateProductPriceVariant(envStore, product_id, price, sku_id,sellerSku) {
+    let path = '/product/price_quantity/update'
+    let param = getCommonParam(envStore);
+    // if (product_id) param.item_id = product_id;
+    // if (sku_id) param.sku_id = sku_id;
+
+    let payload = `
+    <Request>
+    <Product>
+      <Skus>
+        <Sku>
+          <ItemId>${product_id?product_id:""}</ItemId>
+          <SkuId>${sku_id?sku_id:""}</SkuId>
+          <SellerSku>${sellerSku?sellerSku:""}</SellerSku>
           <Price>${price}</Price>
           <SalePrice></SalePrice>
           <SaleStartDate></SaleStartDate>
@@ -582,4 +675,8 @@ function sellerPostReview(envStore, id, content) {
 
     return hitApi(envStore, "get", path, param, {}, {})
 }
-module.exports = { getDocumentAWB,getAuthLink, getToken, getRefreshToken, removeProduct, orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder, getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct, createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct, sellerPostReview };
+module.exports = { updateProductPriceVariant,getDocumentAWB,getAuthLink, getToken, getRefreshToken
+    , removeProduct, orderRts, getAttribute, updateState, getBrands, getCategory, getSingleOrder
+    , getOrders, getProducts, getSingleProduct, updateProductPrice, updateProductStock, getAllSettlements, updateProduct
+    , createProduct, acceptOrder, cancelOrder, getSingleReturn, getAllReturns, acceptRejectReturn, getReviewProduct
+    , sellerPostReview,updateProductStockVariant };

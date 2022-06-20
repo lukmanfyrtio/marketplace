@@ -553,6 +553,31 @@ function updatePrice(shop_id, item_id, new_price,envStore) {
   );
 }
 
+function updatePriceVariant(shop_id, item_id, new_price,envStore,model_id) {
+  //path
+  let path = "/api/v2/product/update_price"
+  let param = {};
+  param.shop_id = shop_id;
+
+  let body = {
+    "item_id": item_id,
+    "price_list": [{
+      "model_id": Number(model_id),
+      "original_price": Number(new_price)
+    }]
+  }
+
+
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body//body
+    ,envStore
+  );
+}
+
+
 
 function deleteItem(shop_id, item_id,envStore) {
   //path
@@ -592,6 +617,28 @@ function updateStock(shop_id, item_id, new_stock,envStore) {
     "item_id": item_id,
     "stock_list": [{
       // "model_id": 0,
+      "normal_stock": Number(new_stock)
+    }]
+  }
+  return hitApi(
+    'post', //method
+    path, //path
+    param,//query
+    body//body,
+    ,envStore
+  );
+}
+
+function updateStockVariant(shop_id, item_id, new_stock,envStore,model_id) {
+  //path
+  let path = "/api/v2/product/update_stock"
+  let param = {};
+  param.shop_id = shop_id;
+  //required
+  let body = {
+    "item_id": item_id,
+    "stock_list": [{
+      "model_id": Number(model_id),
       "normal_stock": Number(new_stock)
     }]
   }
@@ -1219,7 +1266,7 @@ function getVariant(shop_id, productid, envStore) {
     'get', //method
     path, //path
     param,//query
-    body,
+    null,
     envStore
     ,null
   );
@@ -1227,4 +1274,13 @@ function getVariant(shop_id, productid, envStore) {
 
 
 
-module.exports = {getVariant,getRefreshTokenByUpgradeCode,getRefreshTokenAPI,getTrackingNumber,getShippingDocumentResult,getShippingDocumentInfo,createShippingDocument,getShippingDocument,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders, getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock, getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement,getSingleSettlement,shipOrder,getShipParameter};
+module.exports = {getVariant,getRefreshTokenByUpgradeCode
+  ,getRefreshTokenAPI,getTrackingNumber,getShippingDocumentResult
+  ,getShippingDocumentInfo,createShippingDocument,getShippingDocument
+  ,updateShopInfoV2,updateShopInfoV1,deleteItem,getRefreshToken
+  ,getCode,getToken,getBrands,getShopInfo,getReturns,getReturnDetail
+  ,disputeReturn,confirmReturn,getAttribute,getCategory, getOrders
+  , getSingleOrder, getAllProducts, getSingleProduct, updatePrice, updateStock
+  , getModuleList, getProductDiscussion, postProductDiscussion ,updateProduct
+  ,createProduct,cancelOrder,buyerCancel,getLogistic,getAllSettlement
+  ,getSingleSettlement,shipOrder,getShipParameter,updatePriceVariant,updateStockVariant};
